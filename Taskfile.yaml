@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  lint:
+    desc: "Run Go linters"
+    cmds:
+      - echo "Running linters..."
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - golangci-lint run --timeout=5m
+    silent: false
