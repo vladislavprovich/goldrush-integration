@@ -1,6 +1,6 @@
 package client
 
-type ConfigClient struct {
+type Config struct {
 	CrossChain   CrossChainConfig
 	Balances     BalancesConfig
 	Transactions TransactionsConfig
