@@ -1,0 +1,7 @@
+package storage
+
+type Config struct {
+	Addr     string
+	Password string
+	DB       int // Number database.
+}
