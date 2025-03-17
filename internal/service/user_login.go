@@ -27,6 +27,7 @@ func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginU
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "save token error", slog.Any("error", err))
 		return nil, err
 	}
 

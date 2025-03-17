@@ -16,7 +16,7 @@ func (s *Service) RegisterUser(ctx context.Context, req *RegisterUserRequest) (*
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		s.log.ErrorContext(ctx, "RegisterUser call error", slog.Any("error", err))
+		s.log.ErrorContext(ctx, "register user error", slog.Any("error", err))
 		return nil, err
 	}
 

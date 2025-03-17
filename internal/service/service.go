@@ -15,6 +15,10 @@ import (
 type UserService interface {
 	RegisterUser(ctx context.Context, req *RegisterUserRequest) (*RegisterUserResponse, error)
 	LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginUserResponse, error)
+	TransactionInfo(ctx context.Context, req *TransactionInfoRequest, email, token string) (*TransactionInfoResponse, error)
+	RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest, email, token string) (*RecentAddressTransactionResponse, error)
+	TokenBalances(ctx context.Context, req *TokenBalancesRequest, email, token string) (*TokenBalancesResponse, error)
+	HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest, email, token string) (*HistoricalPortfolioValueResponse, error)
 }
 
 type Service struct {
@@ -46,10 +50,18 @@ func NewService(log *slog.Logger, cfg *Config, ssoService ssov1.AuthClient, stor
 	}
 }
 
-func (s *Service) TransactionInfo(ctx context.Context, req *TransactionInfoRequest) (*TransactionInfoResponse, error) {
+func (s *Service) TransactionInfo(ctx context.Context, req *TransactionInfoRequest, email, token string) (*TransactionInfoResponse, error) {
 	ctx, span := s.tracer.Start(context.Background(), "service.TransactionInfo")
 	defer span.End()
 	s.log.InfoContext(ctx, "transaction info call")
+
+	// Verify token before proceeding
+	if err := s.VerifyToken(ctx, email, token); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "Token verification failed", slog.Any("error", err))
+		return nil, err
+	}
 
 	integrationReq := s.convectorToTransactionInfo.ConvectorToTransactionInfoRequest(req)
 
@@ -66,10 +78,18 @@ func (s *Service) TransactionInfo(ctx context.Context, req *TransactionInfoReque
 	return res, nil
 }
 
-func (s *Service) RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest) (*RecentAddressTransactionResponse, error) {
+func (s *Service) RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest, email, token string) (*RecentAddressTransactionResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "service.RecentAddressTransaction")
 	defer span.End()
 	s.log.InfoContext(ctx, "RecentAddressTransaction call")
+
+	// Verify token before proceeding
+	if err := s.VerifyToken(ctx, email, token); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "Token verification failed", slog.Any("error", err))
+		return nil, err
+	}
 
 	integrationReq := s.convectorToRecentAddressTransaction.ConvectorToRecentAddressTransactionRequest(req)
 
@@ -86,10 +106,18 @@ func (s *Service) RecentAddressTransaction(ctx context.Context, req *RecentAddre
 	return res, nil
 }
 
-func (s *Service) TokenBalances(ctx context.Context, req *TokenBalancesRequest) (*TokenBalancesResponse, error) {
+func (s *Service) TokenBalances(ctx context.Context, req *TokenBalancesRequest, email, token string) (*TokenBalancesResponse, error) {
 	ctx, span := s.tracer.Start(context.Background(), "service.TokenBalances")
 	defer span.End()
 	s.log.InfoContext(ctx, "TokenBalances call")
+
+	// Verify token before proceeding
+	if err := s.VerifyToken(ctx, email, token); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "Token verification failed", slog.Any("error", err))
+		return nil, err
+	}
 
 	integrationReq := s.convectorToTokenBalances.ConvectorToTokenBalancesRequest(req)
 
@@ -106,10 +134,18 @@ func (s *Service) TokenBalances(ctx context.Context, req *TokenBalancesRequest) 
 	return res, nil
 }
 
-func (s *Service) HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest) (*HistoricalPortfolioValueResponse, error) {
+func (s *Service) HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest, email, token string) (*HistoricalPortfolioValueResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "service.HistoricalPortfolioValue")
 	defer span.End()
 	s.log.InfoContext(ctx, "HistoricalPortfolioValue call")
+
+	// Verify token before proceeding
+	if err := s.VerifyToken(ctx, email, token); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "Token verification failed", slog.Any("error", err))
+		return nil, err
+	}
 
 	integrationReq := s.convectorToHistoricalPortfolioValue.ConvectorToHistoricalPortfolioValueRequest(req)
 
