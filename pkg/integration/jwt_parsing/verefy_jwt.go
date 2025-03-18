@@ -4,14 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 )
 
-// add cfg
-var secretKey = []byte("my_secret_key")
+// add .env file.
+var secretKey []byte
+
+func init() {
+
+	_ = godotenv.Load()
+
+	secret := os.Getenv("JWT_SECRET_KEY")
+	if secret == "" {
+		log.Fatal("JWT_SECRET_KEY is not set")
+	}
+	secretKey = []byte(secret)
+}
 
 // ExtractTokenFromHeader extracts JWT token from the Authorization header.
 func ExtractTokenFromHeader(r *http.Request) (string, error) {

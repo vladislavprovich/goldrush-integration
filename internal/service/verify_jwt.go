@@ -36,7 +36,7 @@ func (s *Service) VerifyToken(ctx context.Context, token string) error {
 
 	// Verify that the stored token matches the provided token
 	if res.Token != token {
-		err := fmt.Errorf("token mismatch")
+		err = fmt.Errorf("token mismatch")
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		s.log.ErrorContext(ctx, "Token mismatch", slog.String("user_id", userID))
