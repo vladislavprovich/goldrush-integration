@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"go.opentelemetry.io/otel/codes"
+	"goldrush-integration/pkg/integration/jwt_parsing"
 	"log/slog"
-	"time"
 )
 
 func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginUserResponse, error) {
@@ -21,9 +21,20 @@ func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginU
 		return nil, err
 	}
 
-	res := s.convectorToSOO.ConvectorToSSOLoginResponse(loginSSORes)
+	res := s.convectorFromSOO.ConvectorToSSOLoginResponse(loginSSORes)
 
-	err = s.storage.SaveToken(ctx, req.Email, res.Token, time.Hour)
+	// Get userID from jwt token.
+	userID, err := jwt_parsing.ExtractUserID(res.Token)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		s.log.ErrorContext(ctx, "ExtractUserID call error", slog.Any("error", err))
+		return nil, err
+	}
+
+	reqToRepo := s.convectorToRepository.ConvectorToSaveToken(userID, res.Token, s.cfg.Expiration)
+
+	err = s.storage.SaveToken(ctx, reqToRepo)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

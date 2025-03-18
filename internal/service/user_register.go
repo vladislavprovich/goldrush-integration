@@ -20,7 +20,7 @@ func (s *Service) RegisterUser(ctx context.Context, req *RegisterUserRequest) (*
 		return nil, err
 	}
 
-	res := s.convectorToSOO.ConvectorToSSORegisterResponse(registerSSORes)
+	res := s.convectorFromSOO.ConvectorToSSORegisterResponse(registerSSORes)
 
 	return res, nil
 }
