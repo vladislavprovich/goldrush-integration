@@ -32,7 +32,7 @@ func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginU
 		return nil, err
 	}
 
-	reqToRepo := s.convectorToRepository.ConvectorToSaveToken(userID, res.Token, s.cfg.Expiration)
+	reqToRepo := s.convectorToRepository.ConvectorToSaveToken(userID, res.Token)
 
 	err = s.storage.SaveToken(ctx, reqToRepo)
 	if err != nil {

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"goldrush-integration/internal/storage"
+	"goldrush-integration/internal/repository"
 	"goldrush-integration/pkg/integration/client"
 	"log/slog"
 
@@ -11,13 +11,15 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const otelName = "goldrush-integration.service"
+
 type UserService interface {
 	RegisterUser(ctx context.Context, req *RegisterUserRequest) (*RegisterUserResponse, error)
 	LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginUserResponse, error)
-	TransactionInfo(ctx context.Context, req *TransactionInfoRequest, email, token string) (*TransactionInfoResponse, error)
-	RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest, email, token string) (*RecentAddressTransactionResponse, error)
-	TokenBalances(ctx context.Context, req *TokenBalancesRequest, email, token string) (*TokenBalancesResponse, error)
-	HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest, email, token string) (*HistoricalPortfolioValueResponse, error)
+	TransactionInfo(ctx context.Context, req *TransactionInfoRequest) (*TransactionInfoResponse, error)
+	RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest) (*RecentAddressTransactionResponse, error)
+	TokenBalances(ctx context.Context, req *TokenBalancesRequest) (*TokenBalancesResponse, error)
+	HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest) (*HistoricalPortfolioValueResponse, error)
 }
 
 type Service struct {
@@ -25,7 +27,7 @@ type Service struct {
 	log                   *slog.Logger
 	cfg                   *Config
 	ssoService            ssov1.AuthClient
-	storage               storage.TokenRepository
+	storage               repository.TokenRepository
 	convectorToSOO        *ConverterToSSO
 	convectorFromSOO      *ConverterFromSSO
 	convectorToClient     *ConvectorToClient
@@ -34,13 +36,20 @@ type Service struct {
 	client                client.Client
 }
 
-func NewService(log *slog.Logger, cfg *Config, ssoService ssov1.AuthClient, storage storage.TokenRepository) *Service {
+type Params struct {
+	log        *slog.Logger
+	cfg        *Config
+	ssoService ssov1.AuthClient
+	storage    repository.TokenRepository
+}
+
+func NewService(p Params) *Service {
 	return &Service{
-		tracer:                otel.Tracer("service"),
-		log:                   log,
-		cfg:                   cfg,
-		ssoService:            ssoService,
-		storage:               storage,
+		tracer:                otel.Tracer(otelName),
+		log:                   p.log,
+		cfg:                   p.cfg,
+		ssoService:            p.ssoService,
+		storage:               p.storage,
 		convectorToSOO:        NewConvectorToSSO(),
 		convectorFromSOO:      NewConverterFromSSO(),
 		convectorToClient:     NewConvectorToClient(),

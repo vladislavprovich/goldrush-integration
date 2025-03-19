@@ -1,22 +1,26 @@
 package service
 
-type RegisterUserRequest struct {
-	Email    string
-	Password string
-}
+type (
+	RegisterUserRequest struct {
+		Email    string
+		Password string
+	}
 
-type RegisterUserResponse struct {
-	UserID int64
-}
+	RegisterUserResponse struct {
+		UserID int64
+	}
+)
 
-type LoginUserRequest struct {
-	Email    string
-	Password string
-}
+type (
+	LoginUserRequest struct {
+		Email    string
+		Password string
+	}
 
-type LoginUserResponse struct {
-	Token string
-}
+	LoginUserResponse struct {
+		Token string
+	}
+)
 
 type (
 	RecentAddressTransactionRequest struct {

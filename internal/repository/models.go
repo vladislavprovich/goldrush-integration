@@ -1,11 +1,8 @@
-package storage
-
-import "time"
+package repository
 
 type SaveTokenRequest struct {
-	UserID     string `json:"user_id"`
-	Token      string `json:"token"`
-	Expiration time.Duration
+	UserID string `json:"user_id"`
+	Token  string `json:"token"`
 }
 
 type GetTokenRequest struct {

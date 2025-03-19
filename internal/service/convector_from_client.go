@@ -2,23 +2,10 @@ package service
 
 import "goldrush-integration/pkg/integration/client"
 
-type ConvectorToClient struct{}
-
 type ConvectorFromClient struct{}
 
 func NewConvectorFromClient() *ConvectorFromClient {
 	return &ConvectorFromClient{}
-}
-
-func NewConvectorToClient() *ConvectorToClient {
-	return &ConvectorToClient{}
-}
-
-func (r *ConvectorToClient) ConvectorToRecentAddressTransactionRequest(req *RecentAddressTransactionRequest) *client.ReqGetRecentTransactionForAddress {
-	return &client.ReqGetRecentTransactionForAddress{
-		WalletAddress: req.WalletAddress,
-		ChainName:     req.ChainName,
-	}
 }
 
 func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(res *client.ResGetRecentTransactionForAddress) *RecentAddressTransactionResponse {
@@ -125,13 +112,6 @@ func convertLogEvents(events []client.LogEventRecent) []LogEventRecent {
 	return result
 }
 
-func (r *ConvectorToClient) ConvectorToHistoricalPortfolioValueRequest(req *HistoricalPortfolioValueRequest) *client.ReqGetHistoricalPortfolioValueOverTime {
-	return &client.ReqGetHistoricalPortfolioValueOverTime{
-		WalletAddress: req.WalletAddress,
-		ChainName:     req.ChainName,
-	}
-}
-
 func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *client.ResGetHistoricalPortfolioValueOverTime) *HistoricalPortfolioValueResponse {
 	if res == nil {
 		return nil
@@ -184,13 +164,6 @@ func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *c
 		ChainID:       res.ChainID,
 		ChainName:     res.ChainName,
 		Items:         items,
-	}
-}
-
-func (r *ConvectorToClient) ConvectorToTokenBalancesRequest(req *TokenBalancesRequest) *client.ReqGetTokenBalancesForAddress {
-	return &client.ReqGetTokenBalancesForAddress{
-		WalletAddress: req.WalletAddress,
-		ChainName:     req.ChainName,
 	}
 }
 
@@ -271,13 +244,6 @@ func convertNFTData(nftData []client.NFTData) []NFTData {
 		})
 	}
 	return result
-}
-
-func (r *ConvectorToClient) ConvectorToTransactionInfoRequest(req *TransactionInfoRequest) *client.ReqGetTransaction {
-	return &client.ReqGetTransaction{
-		ChainName: req.ChainName,
-		TxHash:    req.TxHash,
-	}
 }
 
 func (r *ConvectorFromClient) ConvectorToTransactionInfoResponse(res *client.ResGetTransaction) *TransactionInfoResponse {
