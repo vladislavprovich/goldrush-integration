@@ -11,39 +11,7 @@ func NewConvectorFromClient() *ConvectorFromClient {
 func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(res *client.ResGetRecentTransactionForAddress) *RecentAddressTransactionResponse {
 	var items []TransactionItemRecent
 	for _, item := range res.Items {
-		items = append(items, TransactionItemRecent{
-			BlockSignedAt:    item.BlockSignedAt,
-			BlockHeight:      item.BlockHeight,
-			BlockHash:        item.BlockHash,
-			TxHash:           item.TxHash,
-			TxOffset:         item.TxOffset,
-			Successful:       item.Successful,
-			FromAddress:      item.FromAddress,
-			MinerAddress:     item.MinerAddress,
-			FromAddressLabel: item.FromAddressLabel,
-			ToAddress:        item.ToAddress,
-			ToAddressLabel:   item.ToAddressLabel,
-			Value:            item.Value,
-			ValueQuote:       item.ValueQuote,
-			PrettyValueQuote: item.PrettyValueQuote,
-			GasMetadata: GasMetadataRecent{
-				ContractDecimals:     item.GasMetadata.ContractDecimals,
-				ContractName:         item.GasMetadata.ContractName,
-				ContractTickerSymbol: item.GasMetadata.ContractTickerSymbol,
-				ContractAddress:      item.GasMetadata.ContractAddress,
-				SupportsERC:          item.GasMetadata.SupportsERC,
-				LogoURL:              item.GasMetadata.LogoURL,
-			},
-			GasOffered:     item.GasOffered,
-			GasSpent:       item.GasSpent,
-			GasPrice:       item.GasPrice,
-			FeesPaid:       item.FeesPaid,
-			GasQuote:       item.GasQuote,
-			PrettyGasQuote: item.PrettyGasQuote,
-			GasQuoteRate:   item.GasQuoteRate,
-			Explorers:      convertExplorers(item.Explorers),
-			LogEvents:      convertLogEvents(item.LogEvents),
-		})
+		items = append(items, convertTransactionItemRecent(item))
 	}
 
 	return &RecentAddressTransactionResponse{
@@ -58,6 +26,42 @@ func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(res *c
 			Next: res.Links.Next,
 		},
 		Items: items,
+	}
+}
+
+func convertTransactionItemRecent(item client.TransactionItemRecent) TransactionItemRecent {
+	return TransactionItemRecent{
+		BlockSignedAt:    item.BlockSignedAt,
+		BlockHeight:      item.BlockHeight,
+		BlockHash:        item.BlockHash,
+		TxHash:           item.TxHash,
+		TxOffset:         item.TxOffset,
+		Successful:       item.Successful,
+		FromAddress:      item.FromAddress,
+		MinerAddress:     item.MinerAddress,
+		FromAddressLabel: item.FromAddressLabel,
+		ToAddress:        item.ToAddress,
+		ToAddressLabel:   item.ToAddressLabel,
+		Value:            item.Value,
+		ValueQuote:       item.ValueQuote,
+		PrettyValueQuote: item.PrettyValueQuote,
+		GasMetadata: GasMetadataRecent{
+			ContractDecimals:     item.GasMetadata.ContractDecimals,
+			ContractName:         item.GasMetadata.ContractName,
+			ContractTickerSymbol: item.GasMetadata.ContractTickerSymbol,
+			ContractAddress:      item.GasMetadata.ContractAddress,
+			SupportsERC:          item.GasMetadata.SupportsERC,
+			LogoURL:              item.GasMetadata.LogoURL,
+		},
+		GasOffered:     item.GasOffered,
+		GasSpent:       item.GasSpent,
+		GasPrice:       item.GasPrice,
+		FeesPaid:       item.FeesPaid,
+		GasQuote:       item.GasQuote,
+		PrettyGasQuote: item.PrettyGasQuote,
+		GasQuoteRate:   item.GasQuoteRate,
+		Explorers:      convertExplorers(item.Explorers),
+		LogEvents:      convertLogEvents(item.LogEvents),
 	}
 }
 
