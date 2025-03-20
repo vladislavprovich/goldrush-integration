@@ -10,10 +10,10 @@ type Client struct {
 	httpClient *http.Client
 	tracer     trace.Tracer
 	log        *slog.Logger
-	cfg        *ConfigClient
+	cfg        *Config
 }
 
-func NewClient(httpClient *http.Client, tracer trace.TracerProvider, log *slog.Logger, cfg *ConfigClient) *Client {
+func NewClient(httpClient *http.Client, tracer trace.TracerProvider, log *slog.Logger, cfg *Config) *Client {
 	return &Client{
 		httpClient: httpClient,
 		tracer:     tracer.Tracer("client"),
