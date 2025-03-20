@@ -89,4 +89,3 @@ type UtilityConfig struct {
 	Chains         string `yaml:"cross_chain_chains" default:"chains"`
 	Status         string `yaml:"cross_chain_status" default:"status"`
 	ResolveAddress string `yaml:"cross_chain_resolve_address" default:"resolve_address"`
-}
