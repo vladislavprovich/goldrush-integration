@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/codes"
-	"goldrush-integration/pkg/integration/jwt_parsing"
 	"log/slog"
+
+	"github.com/vladislavprovich/goldrush-integration/pkg/jwt_parsing"
+
+	"go.opentelemetry.io/otel/codes"
 )
 
 func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginUserResponse, error) {

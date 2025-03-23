@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/codes"
 	"log/slog"
+
+	"go.opentelemetry.io/otel/codes"
 )
 
 func (s *Service) HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest) (*HistoricalPortfolioValueResponse, error) {

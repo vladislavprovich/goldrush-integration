@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	redisintegration "github.com/vladislavprovich/goldrush-integration/internal/repository/redis"
+
 	"github.com/redis/go-redis/v9"
-	"goldrush-integration/internal/repository/redis"
 )
 
 type TokenRepository interface {
@@ -14,11 +16,11 @@ type TokenRepository interface {
 }
 
 type RedisTokenRepository struct {
-	client *redis.RedisClient
-	cfg    *Config
+	client *redisintegration.RedisClient
+	cfg    Config
 }
 
-func NewRedisTokenRepository(client *redis.RedisClient, cfg *Config) *RedisTokenRepository {
+func NewRedisTokenRepository(client *redisintegration.RedisClient, cfg Config) *RedisTokenRepository {
 	return &RedisTokenRepository{
 		client: client,
 		cfg:    cfg,
@@ -26,15 +28,15 @@ func NewRedisTokenRepository(client *redis.RedisClient, cfg *Config) *RedisToken
 }
 
 func (r *RedisTokenRepository) SaveToken(ctx context.Context, req *SaveTokenRequest) error {
-	key := fmt.Sprintf("user_token:%s", req.UserID)
+	key := fmt.Sprintf("user_token:%d", req.UserID)
 	return r.client.Client.Set(ctx, key, req.Token, r.cfg.Expiration).Err()
 }
 
 func (r *RedisTokenRepository) GetToken(ctx context.Context, req *GetTokenRequest) (*GetTokenResponse, error) {
-	key := fmt.Sprintf("user_token:%s", req.UserID)
+	key := fmt.Sprintf("user_token:%d", req.UserID)
 	token, err := r.client.Client.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
-		return nil, fmt.Errorf("token not found for email: %s", req.UserID)
+		return nil, fmt.Errorf("token not found for email: %d", req.UserID)
 	} else if err != nil {
 		return nil, err
 	}

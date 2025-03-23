@@ -3,6 +3,8 @@ package redis
 import (
 	"context"
 	"fmt"
+	defaultLog "log"
+
 	"github.com/redis/go-redis/v9"
 )
 
@@ -10,10 +12,11 @@ type RedisClient struct {
 	Client *redis.Client
 }
 
-func NewRedisClient(cfg *Config) (*RedisClient, error) {
+func NewRedisClient(cfg Config) *RedisClient {
 	client := redis.NewClient(&redis.Options{
-		Addr:         cfg.Addr,
-		Password:     cfg.Password,
+		Addr: cfg.Addr,
+		//Username:     cfg.Username,
+		//Password:     cfg.Password,
 		DB:           cfg.DB,
 		PoolSize:     cfg.PoolSize,
 		MinIdleConns: cfg.MinIdleConns,
@@ -27,11 +30,12 @@ func NewRedisClient(cfg *Config) (*RedisClient, error) {
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect to Redis at %s: %w", cfg.Addr, err)
+		defaultLog.Fatalf("redis ping failed: %v", err)
+		return nil
 	}
 
 	fmt.Println("Connected to Redis:", cfg.Addr)
-	return &RedisClient{Client: client}, nil
+	return &RedisClient{Client: client}
 }
 
 func (r *RedisClient) Close() error {

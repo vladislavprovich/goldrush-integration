@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"goldrush-integration/internal/repository"
-	"goldrush-integration/pkg/integration/client"
 	"log/slog"
+
+	"github.com/vladislavprovich/goldrush-integration/internal/repository"
+	"github.com/vladislavprovich/goldrush-integration/pkg/client"
 
 	ssov1 "github.com/vladislavprovich/protobufContract/gen/go/sso"
 	"go.opentelemetry.io/otel"
@@ -37,19 +38,21 @@ type Service struct {
 }
 
 type Params struct {
-	log        *slog.Logger
-	cfg        *Config
-	ssoService ssov1.AuthClient
-	storage    repository.TokenRepository
+	Log        *slog.Logger
+	Cfg        *Config
+	SSOService ssov1.AuthClient
+	Storage    repository.TokenRepository
+	Client     client.Client
 }
 
 func NewService(p Params) *Service {
 	return &Service{
 		tracer:                otel.Tracer(otelName),
-		log:                   p.log,
-		cfg:                   p.cfg,
-		ssoService:            p.ssoService,
-		storage:               p.storage,
+		log:                   p.Log,
+		cfg:                   p.Cfg,
+		ssoService:            p.SSOService,
+		storage:               p.Storage,
+		client:                p.Client,
 		convectorToSOO:        NewConvectorToSSO(),
 		convectorFromSOO:      NewConverterFromSSO(),
 		convectorToClient:     NewConvectorToClient(),

@@ -1,6 +1,6 @@
 package service
 
-import "goldrush-integration/pkg/integration/client"
+import "github.com/vladislavprovich/goldrush-integration/pkg/client"
 
 type ConvectorToClient struct{}
 
