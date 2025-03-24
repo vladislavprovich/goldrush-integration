@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetHistoricalTokenBalancesForAddress(ctx context.Context, req *ReqGetHistoricalTokenBalancesForAddress) (*ResGetHistoricalTokenBalancesForAddress, error) {
+func (c *Client) GetHistoricalTokenBalancesForAddress(
+	ctx context.Context,
+	req *ReqGetHistoricalTokenBalancesForAddress,
+) (*ResGetHistoricalTokenBalancesForAddress, error) {
 	const op = "client.GetHistoricalTokenBalancesForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetHistoricalTokenBalancesForAddress(ctx context.Context, req *
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

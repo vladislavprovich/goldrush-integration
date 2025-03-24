@@ -8,7 +8,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (s *Service) HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest) (*HistoricalPortfolioValueResponse, error) {
+func (s *Service) HistoricalPortfolioValue(
+	ctx context.Context,
+	req *HistoricalPortfolioValueRequest,
+) (*HistoricalPortfolioValueResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "service.HistoricalPortfolioValue")
 	defer span.End()
 	s.log.InfoContext(ctx, "HistoricalPortfolioValue call")

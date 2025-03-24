@@ -6,7 +6,7 @@ import (
 	defaultLog "log"
 	"net/http"
 
-	"github.com/vladislavprovich/goldrush-integration/pkg/jwt_parsing"
+	"github.com/vladislavprovich/goldrush-integration/pkg/tokenjwtparsing"
 )
 
 // UserIDKey is the context key for the user ID.
@@ -19,13 +19,13 @@ const claimsUserIDKey = "user_id"
 // JWTAuthMiddleware is a middleware function for JWT verification.
 func JWTAuthMiddleware(next http.Handler, secret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString, err := jwt_parsing.ExtractTokenFromHeader(r)
+		tokenString, err := tokenjwtparsing.ExtractTokenFromHeader(r)
 		if err != nil {
 			writeJSONError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
 
-		claims, err := jwt_parsing.VerifyJWT(tokenString, secret)
+		claims, err := tokenjwtparsing.VerifyJWT(tokenString, secret)
 		if err != nil {
 			defaultLog.Printf("JWT verification failed: %v", err)
 			writeJSONError(w, http.StatusUnauthorized, "Invalid token")

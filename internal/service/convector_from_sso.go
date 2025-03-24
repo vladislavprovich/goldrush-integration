@@ -10,12 +10,12 @@ func NewConverterFromSSO() *ConverterFromSSO {
 
 func (s *ConverterFromSSO) ConvectorToSSOLoginResponse(req *ssov1.LoginResponse) *LoginUserResponse {
 	return &LoginUserResponse{
-		Token: req.Token,
+		Token: req.GetToken(),
 	}
 }
 
 func (s *ConverterFromSSO) ConvectorToSSORegisterResponse(res *ssov1.RegisterResponse) *RegisterUserResponse {
 	return &RegisterUserResponse{
-		UserID: res.UsedId,
+		UserID: res.GetUsedId(),
 	}
 }

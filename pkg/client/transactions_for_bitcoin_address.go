@@ -12,7 +12,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetTransactionsForBitcoinAddress(ctx context.Context) (*ResGetTransactionsForBitcoinAddress, error) {
+func (c *Client) GetTransactionsForBitcoinAddress(
+	ctx context.Context,
+) (*ResGetTransactionsForBitcoinAddress, error) {
 	const op = "client.GetTransactionsForBitcoinAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -35,7 +37,8 @@ func (c *Client) GetTransactionsForBitcoinAddress(ctx context.Context) (*ResGetT
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

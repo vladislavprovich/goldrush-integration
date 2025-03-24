@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/vladislavprovich/goldrush-integration/pkg/jwt_parsing"
+	"github.com/vladislavprovich/goldrush-integration/pkg/tokenjwtparsing"
 
 	"go.opentelemetry.io/otel/codes"
 )
@@ -26,7 +26,7 @@ func (s *Service) LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginU
 	res := s.convectorFromSOO.ConvectorToSSOLoginResponse(loginSSORes)
 
 	// Get userID from jwt token.
-	userID, err := jwt_parsing.ExtractUserID(res.Token)
+	userID, err := tokenjwtparsing.ExtractUserID(res.Token)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())

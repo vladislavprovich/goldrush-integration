@@ -1,8 +1,8 @@
-package jwt_parsing
+package tokenjwtparsing
 
 import (
-	"fmt"
-	"log"
+	"errors"
+	defaultLog "log"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -17,14 +17,15 @@ func ExtractUserID(tokenString string) (int, error) {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, fmt.Errorf("invalid token claims")
+		defaultLog.Println("Claims: ", claims)
+		return 0, errors.New("invalid token claims")
 	}
 
-	log.Printf("Token claims: %+v\n", claims)
+	defaultLog.Printf("Token claims: %+v\n", claims)
 
 	if userIDFloat, exists := claims[claimsUserID].(float64); exists {
 		return int(userIDFloat), nil
 	}
 
-	return 0, fmt.Errorf("user_id not found in token")
+	return 0, errors.New("user_id not found in token")
 }

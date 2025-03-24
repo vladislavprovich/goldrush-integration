@@ -1,4 +1,4 @@
-package slog_writer
+package slogwriter
 
 import "log/slog"
 
@@ -6,7 +6,7 @@ type SlogWriter struct {
 	Logger *slog.Logger
 }
 
-func (w *SlogWriter) Write(p []byte) (n int, err error) {
+func (w *SlogWriter) Write(p []byte) (int, error) {
 	w.Logger.Info(string(p))
 	return len(p), nil
 }

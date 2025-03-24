@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetLogEventsByContractAddress(ctx context.Context, req *ReqGetLogEventsByContractAddress) (*ResGetLogEventsByContractAddress, error) {
+func (c *Client) GetLogEventsByContractAddress(
+	ctx context.Context,
+	req *ReqGetLogEventsByContractAddress,
+) (*ResGetLogEventsByContractAddress, error) {
 	const op = "client.GetLogEventsByContractAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetLogEventsByContractAddress(ctx context.Context, req *ReqGetL
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

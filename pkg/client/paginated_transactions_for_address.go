@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetPaginatedTransactionForAddress(ctx context.Context, req *ReqGetPaginatedTransactionForAddress) (*ResGetPaginatedTransactionForAddress, error) {
+func (c *Client) GetPaginatedTransactionForAddress(
+	ctx context.Context,
+	req *ReqGetPaginatedTransactionForAddress,
+) (*ResGetPaginatedTransactionForAddress, error) {
 	const op = "client.GetPaginatedTransactionForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -36,7 +39,8 @@ func (c *Client) GetPaginatedTransactionForAddress(ctx context.Context, req *Req
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

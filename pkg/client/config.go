@@ -73,7 +73,7 @@ type PricesConfig struct {
 	BaseURL                 string `json:"prices_base_url" env:"PRICES_BASE_URL" envDefault:"api.covalenthq.com"`
 	Version                 string `json:"prices_version" env:"PRICES_VERSION" envDefault:"v1"`
 	Pricing                 string `json:"prices_pricing" env:"PRICES_PRICING" envDefault:"pricing"`
-	HistoricalByAddressesV2 string `json:"prices_historical_by_addresses_v2" env:"PRICES_HISTORICAL_BY_ADDRESSES_V2" envDefault:"historical_by_addresses_v2"`
+	HistoricalByAddressesV2 string `json:"prices_historical_by_addresses_v2" env:"PRICES_HISTORICAL_BY_ADDRESSES_V2"`
 	SpotPrices              string `json:"prices_spot_prices" env:"PRICES_SPOT_PRICES" envDefault:"spot_prices"`
 	Pools                   string `json:"prices_pools" env:"PRICES_POOLS" envDefault:"pools"`
 	Event                   string `json:"prices_event" env:"PRICES_EVENT" envDefault:"event"`

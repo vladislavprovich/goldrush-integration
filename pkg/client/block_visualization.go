@@ -33,7 +33,8 @@ func (c *Client) GetABlock(ctx context.Context, req *ReqGetABlock) (*ResGetABloc
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

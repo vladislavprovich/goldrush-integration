@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetActivityAcrossAllChains(ctx context.Context, req *ReqGetActivityAcrossAllChains) (*RespGetActivityAcrossAllChains, error) {
+func (c *Client) GetActivityAcrossAllChains(
+	ctx context.Context,
+	req *ReqGetActivityAcrossAllChains,
+) (*RespGetActivityAcrossAllChains, error) {
 	const op = "client.GetActivityAcrossAllChains"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -33,7 +36,8 @@ func (c *Client) GetActivityAcrossAllChains(ctx context.Context, req *ReqGetActi
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

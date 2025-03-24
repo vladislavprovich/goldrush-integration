@@ -2,21 +2,18 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	defaultLog "log"
 
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisClient struct {
+type ClientRedis struct {
 	Client *redis.Client
 }
 
-func NewRedisClient(cfg Config) *RedisClient {
+func NewRedisClient(cfg Config) *ClientRedis {
 	client := redis.NewClient(&redis.Options{
-		Addr: cfg.Addr,
-		//Username:     cfg.Username,
-		//Password:     cfg.Password,
+		Addr:         cfg.Addr,
 		DB:           cfg.DB,
 		PoolSize:     cfg.PoolSize,
 		MinIdleConns: cfg.MinIdleConns,
@@ -34,10 +31,10 @@ func NewRedisClient(cfg Config) *RedisClient {
 		return nil
 	}
 
-	fmt.Println("Connected to Redis:", cfg.Addr)
-	return &RedisClient{Client: client}
+	defaultLog.Println("Connected to Redis:", cfg.Addr)
+	return &ClientRedis{Client: client}
 }
 
-func (r *RedisClient) Close() error {
+func (r *ClientRedis) Close() error {
 	return r.Client.Close()
 }

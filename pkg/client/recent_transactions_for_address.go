@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetRecentTransactionForAddress(ctx context.Context, req *ReqGetRecentTransactionForAddress) (*ResGetRecentTransactionForAddress, error) {
+func (c *Client) GetRecentTransactionForAddress(
+	ctx context.Context,
+	req *ReqGetRecentTransactionForAddress,
+) (*ResGetRecentTransactionForAddress, error) {
 	const op = "client.GetRecentTransactionForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetRecentTransactionForAddress(ctx context.Context, req *ReqGet
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get recent transactions for address", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get recent transactions for address",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

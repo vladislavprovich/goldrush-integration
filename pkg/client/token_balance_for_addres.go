@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetTokenBalancesForAddress(ctx context.Context, req *ReqGetTokenBalancesForAddress) (*ResGetTokenBalancesForAddress, error) {
+func (c *Client) GetTokenBalancesForAddress(
+	ctx context.Context,
+	req *ReqGetTokenBalancesForAddress,
+) (*ResGetTokenBalancesForAddress, error) {
 	const op = "client.GetTokenBalancesForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetTokenBalancesForAddress(ctx context.Context, req *ReqGetToke
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 
@@ -80,16 +84,6 @@ func (c *Client) GetTokenBalancesForAddress(ctx context.Context, req *ReqGetToke
 	if err = json.Unmarshal(body, &wrapper); err == nil {
 		return &wrapper.Data, nil
 	}
-
-	// Fall back to direct unmarshaling if wrapper approach fails
-	//var res ResGetTokenBalancesForAddress
-	//if err = json.Unmarshal(body, &res); err != nil {
-	//	span.SetStatus(codes.Error, err.Error())
-	//	span.RecordError(err)
-	//
-	//	c.log.ErrorContext(ctx, "service error", "err", err)
-	//	return nil, errors.New("service error")
-	//}
 
 	return &wrapper.Data, nil
 }

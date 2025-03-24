@@ -16,11 +16,11 @@ type TokenRepository interface {
 }
 
 type RedisTokenRepository struct {
-	client *redisintegration.RedisClient
+	client *redisintegration.ClientRedis
 	cfg    Config
 }
 
-func NewRedisTokenRepository(client *redisintegration.RedisClient, cfg Config) *RedisTokenRepository {
+func NewRedisTokenRepository(client *redisintegration.ClientRedis, cfg Config) *RedisTokenRepository {
 	return &RedisTokenRepository{
 		client: client,
 		cfg:    cfg,

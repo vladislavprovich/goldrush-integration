@@ -517,7 +517,7 @@ type (
 		UpdatedAt     string                                 `json:"updated_at"`
 		NextUpdateAt  string                                 `json:"next_update_at"`
 		QuoteCurrency string                                 `json:"quote_currency"`
-		ChainId       int                                    `json:"chain_id"`
+		ChainID       int                                    `json:"chain_id"`
 		ChainName     string                                 `json:"chain_name"`
 		Items         []HistoricalPortfolioValueContractItem `json:"items"`
 	}

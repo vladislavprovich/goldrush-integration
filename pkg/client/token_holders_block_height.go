@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetTokenHoldersBlockHeight(ctx context.Context, req *ReqGetTokenHoldersBlockHeight) (*ResGetTokenHoldersBlockHeight, error) {
+func (c *Client) GetTokenHoldersBlockHeight(
+	ctx context.Context,
+	req *ReqGetTokenHoldersBlockHeight,
+) (*ResGetTokenHoldersBlockHeight, error) {
 	const op = "client.GetTokenHoldersBlockHeight"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetTokenHoldersBlockHeight(ctx context.Context, req *ReqGetToke
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

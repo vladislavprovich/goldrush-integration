@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetHistoricalPortfolioValueOverTime(ctx context.Context, req *ReqGetHistoricalPortfolioValueOverTime) (*ResGetHistoricalPortfolioValueOverTime, error) {
+func (c *Client) GetHistoricalPortfolioValueOverTime(
+	ctx context.Context,
+	req *ReqGetHistoricalPortfolioValueOverTime,
+) (*ResGetHistoricalPortfolioValueOverTime, error) {
 	const op = "client.GetHistoricalPortfolioValueOverTime"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetHistoricalPortfolioValueOverTime(ctx context.Context, req *R
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

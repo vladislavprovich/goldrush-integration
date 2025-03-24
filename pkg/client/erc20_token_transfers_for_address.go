@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetERC20TokenTransfersForAddress(ctx context.Context, req *ReqGetERC20TokenTransfersForAddress) (*ResGetERC20TokenTransfersForAddress, error) {
+func (c *Client) GetERC20TokenTransfersForAddress(
+	ctx context.Context,
+	req *ReqGetERC20TokenTransfersForAddress,
+) (*ResGetERC20TokenTransfersForAddress, error) {
 	const op = "client.GetERC20TokenTransfersForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetERC20TokenTransfersForAddress(ctx context.Context, req *ReqG
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

@@ -8,7 +8,9 @@ func NewConvectorFromClient() *ConvectorFromClient {
 	return &ConvectorFromClient{}
 }
 
-func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *client.ResGetHistoricalPortfolioValueOverTime) *HistoricalPortfolioValueResponse {
+func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(
+	res *client.ResGetHistoricalPortfolioValueOverTime,
+) *HistoricalPortfolioValueResponse {
 	var items []HistoricalPortfolioItem
 	for _, item := range res.Items {
 		var holdings []HistoricalHolding
@@ -53,13 +55,15 @@ func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *c
 		Address:       res.Address,
 		UpdatedAt:     res.UpdatedAt,
 		QuoteCurrency: res.QuoteCurrency,
-		ChainID:       res.ChainId,
+		ChainID:       res.ChainID,
 		ChainName:     res.ChainName,
 		Items:         items,
 	}
 }
 
-func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(res *client.ResGetRecentTransactionForAddress) *RecentAddressTransactionResponse {
+func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(
+	res *client.ResGetRecentTransactionForAddress,
+) *RecentAddressTransactionResponse {
 	var items []TransactionItemRecent
 	for _, item := range res.Items {
 		items = append(items, convertTransactionItemRecent(item))
@@ -174,7 +178,9 @@ func convertLogEvents(events []client.LogEventRecent) []LogEventRecent {
 	return result
 }
 
-func (r *ConvectorFromClient) ConvectorToTokenBalancesResponse(res *client.ResGetTokenBalancesForAddress) *TokenBalancesResponse {
+func (r *ConvectorFromClient) ConvectorToTokenBalancesResponse(
+	res *client.ResGetTokenBalancesForAddress,
+) *TokenBalancesResponse {
 	if res == nil {
 		return nil
 	}
@@ -253,7 +259,9 @@ func convertNFTData(nftData []client.NFTData) []NFTData {
 	return result
 }
 
-func (r *ConvectorFromClient) ConvectorToTransactionInfoResponse(res *client.ResGetTransaction) *TransactionInfoResponse {
+func (r *ConvectorFromClient) ConvectorToTransactionInfoResponse(
+	res *client.ResGetTransaction,
+) *TransactionInfoResponse {
 	// Check if the response is nil.
 	if res == nil {
 		return nil

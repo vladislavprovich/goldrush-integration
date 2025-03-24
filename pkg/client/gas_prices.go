@@ -34,7 +34,8 @@ func (c *Client) GetGasPrices(ctx context.Context, req *ReqGetGasPrices) (*ResGe
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

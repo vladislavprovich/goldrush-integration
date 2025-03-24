@@ -108,12 +108,13 @@ func main() {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs: rootCAs,
+			RootCAs:    rootCAs,
+			MinVersion: tls.VersionTLS12,
 		},
 	}
 
 	httpClient := &http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   cfg.Handler.TimeOut,
 		Transport: tr,
 	}
 	integrationClient := client.NewClient(httpClient, tracerProvider, log, &cfg.Client)
@@ -134,8 +135,9 @@ func main() {
 
 	// Start HTTP server
 	server := &http.Server{
-		Addr:    cfg.Handler.Address,
-		Handler: r,
+		Addr:              cfg.Handler.Address,
+		ReadHeaderTimeout: cfg.Handler.ReadHandlerTimeout,
+		Handler:           r,
 	}
 
 	go func() {
@@ -152,7 +154,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second)
 	defer shutdownCancel()
 
 	if err = server.Shutdown(shutdownCtx); err != nil {

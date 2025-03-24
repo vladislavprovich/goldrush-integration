@@ -12,7 +12,10 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (c *Client) GetEarliesrTransactionForAddress(ctx context.Context, req *ReqGetEarliesrTransactionForAddress) (*ResGetEarliestTransactionForAddress, error) {
+func (c *Client) GetEarliesrTransactionForAddress(
+	ctx context.Context,
+	req *ReqGetEarliesrTransactionForAddress,
+) (*ResGetEarliestTransactionForAddress, error) {
 	const op = "client.GetEarliesrTransactionForAddress"
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
@@ -34,7 +37,8 @@ func (c *Client) GetEarliesrTransactionForAddress(ctx context.Context, req *ReqG
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
+			"err", err)
 		return nil, errors.New("service error")
 	}
 

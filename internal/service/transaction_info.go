@@ -7,8 +7,11 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-func (s *Service) TransactionInfo(ctx context.Context, req *TransactionInfoRequest) (*TransactionInfoResponse, error) {
-	ctx, span := s.tracer.Start(context.Background(), "service.TransactionInfo")
+func (s *Service) TransactionInfo(
+	ctx context.Context,
+	req *TransactionInfoRequest,
+) (*TransactionInfoResponse, error) {
+	ctx, span := s.tracer.Start(ctx, "service.TransactionInfo")
 	defer span.End()
 	s.log.InfoContext(ctx, "transaction info call")
 

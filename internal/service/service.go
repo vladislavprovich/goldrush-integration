@@ -15,12 +15,30 @@ import (
 const otelName = "goldrush-integration.service"
 
 type UserService interface {
-	RegisterUser(ctx context.Context, req *RegisterUserRequest) (*RegisterUserResponse, error)
-	LoginUser(ctx context.Context, req *LoginUserRequest) (*LoginUserResponse, error)
-	TransactionInfo(ctx context.Context, req *TransactionInfoRequest) (*TransactionInfoResponse, error)
-	RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest) (*RecentAddressTransactionResponse, error)
-	TokenBalances(ctx context.Context, req *TokenBalancesRequest) (*TokenBalancesResponse, error)
-	HistoricalPortfolioValue(ctx context.Context, req *HistoricalPortfolioValueRequest) (*HistoricalPortfolioValueResponse, error)
+	RegisterUser(
+		ctx context.Context,
+		req *RegisterUserRequest,
+	) (*RegisterUserResponse, error)
+	LoginUser(
+		ctx context.Context,
+		req *LoginUserRequest,
+	) (*LoginUserResponse, error)
+	TransactionInfo(
+		ctx context.Context,
+		req *TransactionInfoRequest,
+	) (*TransactionInfoResponse, error)
+	RecentAddressTransaction(
+		ctx context.Context,
+		req *RecentAddressTransactionRequest,
+	) (*RecentAddressTransactionResponse, error)
+	TokenBalances(
+		ctx context.Context,
+		req *TokenBalancesRequest,
+	) (*TokenBalancesResponse, error)
+	HistoricalPortfolioValue(
+		ctx context.Context,
+		req *HistoricalPortfolioValueRequest,
+	) (*HistoricalPortfolioValueResponse, error)
 }
 
 type Service struct {

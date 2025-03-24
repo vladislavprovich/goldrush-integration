@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/vladislavprovich/goldrush-integration/internal/middleware"
-	"github.com/vladislavprovich/goldrush-integration/pkg/slog_writer"
+	"github.com/vladislavprovich/goldrush-integration/pkg/slogwriter"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
@@ -14,7 +14,7 @@ import (
 func InitRouter(grHandler *GoldRushHandler, logger *slog.Logger, cfg *Config) *chi.Mux {
 	r := chi.NewRouter()
 
-	wrappedLogger := log.New(&slog_writer.SlogWriter{Logger: logger}, "", 0)
+	wrappedLogger := log.New(&slogwriter.SlogWriter{Logger: logger}, "", 0)
 
 	// Middleware stack
 	r.Use(chiMiddleware.Recoverer)
