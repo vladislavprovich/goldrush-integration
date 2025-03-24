@@ -2,9 +2,12 @@ name: GITHUB-ACTIONS
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
+
+env:
+  GO_VERSION: 1.23.6
 
 jobs:
   build:
@@ -15,7 +18,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: ${{ env.GO_VERSION }}
         cache: true
 
     - name: Install dependencies
