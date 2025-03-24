@@ -24,8 +24,8 @@ func NewGoldRushHandler(srv *service.Service, log *slog.Logger, cfg *Config) *Go
 }
 
 func (h *GoldRushHandler) UserRegister(w http.ResponseWriter, r *http.Request) {
-	log.Println("UserRegister called")         // Лог перед виконанням
-	defer log.Println("UserRegister finished") // Лог після виконання
+	log.Println("UserRegister called")
+	defer log.Println("UserRegister finished")
 
 	h.logger.Info("handler.UserRegister called")
 	var req service.RegisterUserRequest
@@ -175,7 +175,7 @@ func (h *GoldRushHandler) GetHistoricalPortfolioTransaction(w http.ResponseWrite
 	h.logger.Info("handler.GetHistoricalPortfolioTransaction called")
 	var req service.HistoricalPortfolioValueRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("handler.GetHistoricalPortfolioTransaction.json.Decoder.Decode",
+		h.logger.Error("handler.GetRecentAddressTransaction.json.Decoder.Decode",
 			slog.Any("error", err))
 		http.Error(w, "json decode error", http.StatusBadRequest)
 		return

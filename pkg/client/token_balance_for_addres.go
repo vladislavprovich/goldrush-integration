@@ -75,14 +75,21 @@ func (c *Client) GetTokenBalancesForAddress(ctx context.Context, req *ReqGetToke
 		return nil, errors.New("service error")
 	}
 
-	var res ResGetTokenBalancesForAddress
-	if err = json.Unmarshal(body, &res); err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+	// Try to unmarshal with the data wrapper first
+	var wrapper ResponseWrapper
+	if err = json.Unmarshal(body, &wrapper); err == nil {
+		return &wrapper.Data, nil
 	}
 
-	return &res, nil
+	// Fall back to direct unmarshaling if wrapper approach fails
+	//var res ResGetTokenBalancesForAddress
+	//if err = json.Unmarshal(body, &res); err != nil {
+	//	span.SetStatus(codes.Error, err.Error())
+	//	span.RecordError(err)
+	//
+	//	c.log.ErrorContext(ctx, "service error", "err", err)
+	//	return nil, errors.New("service error")
+	//}
+
+	return &wrapper.Data, nil
 }

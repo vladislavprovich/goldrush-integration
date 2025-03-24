@@ -25,7 +25,7 @@ func (c *Client) GetHistoricalPortfolioValueOverTime(ctx context.Context, req *R
 			req.ChainName,
 			c.cfg.Balances.Address,
 			req.WalletAddress,
-			c.cfg.Balances.TransfersV2,
+			c.cfg.Balances.PortfolioV2,
 		),
 	}
 
@@ -75,14 +75,10 @@ func (c *Client) GetHistoricalPortfolioValueOverTime(ctx context.Context, req *R
 		return nil, errors.New("service error")
 	}
 
-	var res ResGetHistoricalPortfolioValueOverTime
-	if err = json.Unmarshal(body, &res); err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+	var wrapper TransactionResponsePortfolioValueOverTime
+	if err = json.Unmarshal(body, &wrapper); err == nil {
+		return &wrapper.Data, nil
 	}
 
-	return &res, nil
+	return &wrapper.Data, nil
 }

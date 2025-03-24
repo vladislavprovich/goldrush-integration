@@ -5,6 +5,16 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"io"
+	defaultLog "log"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
+	"time"
+
 	"github.com/vladislavprovich/goldrush-integration/cmd/config"
 	"github.com/vladislavprovich/goldrush-integration/internal/handler"
 	"github.com/vladislavprovich/goldrush-integration/internal/repository"
@@ -15,15 +25,6 @@ import (
 	ssov1 "github.com/vladislavprovich/protobufContract/gen/go/sso"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"io"
-	defaultLog "log"
-	"log/slog"
-	"net/http"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 const (
@@ -31,36 +32,6 @@ const (
 	envDev   = "dev"
 	envProd  = "prod"
 )
-
-//func main() {
-//	apiKey := "cqt_rQ6yfw3Y8fCMKqJKmKf494ffWqK3"
-//	url := "https://api.covalenthq.com/v1/eth-mainnet/address/0x742d35Cc6634C0532925a3b844Bc454e4438f44e/balances_v2/"
-//
-//	req, err := http.NewRequest("GET", url, nil)
-//	if err != nil {
-//		fmt.Println("Error creating request:", err)
-//		os.Exit(1)
-//	}
-//
-//	req.Header.Set("Content-Type", "application/json")
-//	req.SetBasicAuth(apiKey, "")
-//
-//	client := &http.Client{}
-//	resp, err := client.Do(req)
-//	if err != nil {
-//		fmt.Println("Error making request:", err)
-//		os.Exit(1)
-//	}
-//	defer resp.Body.Close()
-//
-//	body, err := ioutil.ReadAll(resp.Body)
-//	if err != nil {
-//		fmt.Println("Error reading response:", err)
-//		os.Exit(1)
-//	}
-//
-//	fmt.Println("Response:", string(body))
-//}
 
 func main() {
 	cfg := config.MustLoad()

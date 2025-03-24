@@ -8,6 +8,57 @@ func NewConvectorFromClient() *ConvectorFromClient {
 	return &ConvectorFromClient{}
 }
 
+func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *client.ResGetHistoricalPortfolioValueOverTime) *HistoricalPortfolioValueResponse {
+	var items []HistoricalPortfolioItem
+	for _, item := range res.Items {
+		var holdings []HistoricalHolding
+		for _, holding := range item.Holdings {
+			holdings = append(holdings, HistoricalHolding{
+				QuoteRate: holding.QuoteRate,
+				Timestamp: holding.Timestamp,
+				Close: HistoricalBalance{
+					Balance:     holding.Close.Balance,
+					Quote:       holding.Close.Quote,
+					PrettyQuote: holding.Close.PrettyQuote,
+				},
+				High: HistoricalBalance{
+					Balance:     holding.High.Balance,
+					Quote:       holding.High.Quote,
+					PrettyQuote: holding.High.PrettyQuote,
+				},
+				Low: HistoricalBalance{
+					Balance:     holding.Low.Balance,
+					Quote:       holding.Low.Quote,
+					PrettyQuote: holding.Low.PrettyQuote,
+				},
+				Open: HistoricalBalance{
+					Balance:     holding.Open.Balance,
+					Quote:       holding.Open.Quote,
+					PrettyQuote: holding.Open.PrettyQuote,
+				},
+			})
+		}
+
+		items = append(items, HistoricalPortfolioItem{
+			ContractAddress:      item.ContractAddress,
+			ContractDecimals:     item.ContractDecimals,
+			ContractName:         item.ContractName,
+			ContractTickerSymbol: item.ContractTickerSymbol,
+			LogoURL:              item.LogoURL,
+			Holdings:             holdings,
+		})
+	}
+
+	return &HistoricalPortfolioValueResponse{
+		Address:       res.Address,
+		UpdatedAt:     res.UpdatedAt,
+		QuoteCurrency: res.QuoteCurrency,
+		ChainID:       res.ChainId,
+		ChainName:     res.ChainName,
+		Items:         items,
+	}
+}
+
 func (r *ConvectorFromClient) ConvectorToRecentAddressTransactionResponse(res *client.ResGetRecentTransactionForAddress) *RecentAddressTransactionResponse {
 	var items []TransactionItemRecent
 	for _, item := range res.Items {
@@ -43,7 +94,7 @@ func convertTransactionItemRecent(item client.TransactionItemRecent) Transaction
 		ToAddress:        item.ToAddress,
 		ToAddressLabel:   item.ToAddressLabel,
 		Value:            item.Value,
-		ValueQuote:       item.ValueQuote,
+		ValueQuote:       float64(item.ValueQuote),
 		PrettyValueQuote: item.PrettyValueQuote,
 		GasMetadata: GasMetadataRecent{
 			ContractDecimals:     item.GasMetadata.ContractDecimals,
@@ -57,9 +108,9 @@ func convertTransactionItemRecent(item client.TransactionItemRecent) Transaction
 		GasSpent:       item.GasSpent,
 		GasPrice:       item.GasPrice,
 		FeesPaid:       item.FeesPaid,
-		GasQuote:       item.GasQuote,
+		GasQuote:       float64(item.GasQuote),
 		PrettyGasQuote: item.PrettyGasQuote,
-		GasQuoteRate:   item.GasQuoteRate,
+		GasQuoteRate:   float64(item.GasQuoteRate),
 		Explorers:      convertExplorers(item.Explorers),
 		LogEvents:      convertLogEvents(item.LogEvents),
 	}
@@ -80,14 +131,25 @@ func convertLogEvents(events []client.LogEventRecent) []LogEventRecent {
 	var result []LogEventRecent
 	for _, event := range events {
 		var params []Param
-		for _, p := range event.Decoded.Params {
-			params = append(params, Param{
-				Name:    p.Name,
-				Type:    p.Type,
-				Indexed: p.Indexed,
-				Decoded: p.Decoded,
-				Value:   p.Value,
-			})
+		if event.Decoded != nil {
+			for _, p := range event.Decoded.Params {
+				params = append(params, Param{
+					Name:    p.Name,
+					Type:    p.Type,
+					Indexed: p.Indexed,
+					Decoded: p.Decoded,
+					Value:   p.Value,
+				})
+			}
+		}
+
+		decodedData := DecodedData{}
+		if event.Decoded != nil {
+			decodedData = DecodedData{
+				Name:      event.Decoded.Name,
+				Signature: event.Decoded.Signature,
+				Params:    params,
+			}
 		}
 
 		result = append(result, LogEventRecent{
@@ -106,69 +168,10 @@ func convertLogEvents(events []client.LogEventRecent) []LogEventRecent {
 			SupportsERC:            event.SupportsERC,
 			SenderFactoryAddress:   event.SenderFactoryAddress,
 			RawLogData:             event.RawLogData,
-			Decoded: DecodedData{
-				Name:      event.Decoded.Name,
-				Signature: event.Decoded.Signature,
-				Params:    params,
-			},
+			Decoded:                decodedData,
 		})
 	}
 	return result
-}
-
-func (r *ConvectorFromClient) ConvectorToHistoricalPortfolioValueResponse(res *client.ResGetHistoricalPortfolioValueOverTime) *HistoricalPortfolioValueResponse {
-	if res == nil {
-		return nil
-	}
-
-	var items []HistoricalPortfolioItem
-	for _, item := range res.Items {
-		var holdings []Holding
-		for _, h := range item.Holdings {
-			holdings = append(holdings, Holding{
-				QuoteRate: h.QuoteRate,
-				Timestamp: h.Timestamp,
-				Close: PricePoint{
-					Balance:     h.Close.Balance,
-					Quote:       h.Close.Quote,
-					PrettyQuote: h.Close.PrettyQuote,
-				},
-				High: PricePoint{
-					Balance:     h.High.Balance,
-					Quote:       h.High.Quote,
-					PrettyQuote: h.High.PrettyQuote,
-				},
-				Low: PricePoint{
-					Balance:     h.Low.Balance,
-					Quote:       h.Low.Quote,
-					PrettyQuote: h.Low.PrettyQuote,
-				},
-				Open: PricePoint{
-					Balance:     h.Open.Balance,
-					Quote:       h.Open.Quote,
-					PrettyQuote: h.Open.PrettyQuote,
-				},
-			})
-		}
-
-		items = append(items, HistoricalPortfolioItem{
-			ContractAddress:      item.ContractAddress,
-			ContractDecimals:     item.ContractDecimals,
-			ContractName:         item.ContractName,
-			ContractTickerSymbol: item.ContractTickerSymbol,
-			LogoURL:              item.LogoURL,
-			Holdings:             holdings,
-		})
-	}
-
-	return &HistoricalPortfolioValueResponse{
-		Address:       res.Address,
-		UpdatedAt:     res.UpdatedAt,
-		QuoteCurrency: res.QuoteCurrency,
-		ChainID:       res.ChainID,
-		ChainName:     res.ChainName,
-		Items:         items,
-	}
 }
 
 func (r *ConvectorFromClient) ConvectorToTokenBalancesResponse(res *client.ResGetTokenBalancesForAddress) *TokenBalancesResponse {
@@ -197,9 +200,9 @@ func (r *ConvectorFromClient) ConvectorToTokenBalancesResponse(res *client.ResGe
 			IsSpam:            item.IsSpam,
 			Balance:           item.Balance,
 			Balance24h:        item.Balance24h,
-			QuoteRate:         item.QuoteRate,
-			QuoteRate24h:      item.QuoteRate24h,
-			Quote:             item.Quote,
+			QuoteRate:         float64(item.QuoteRate),
+			QuoteRate24h:      float64(item.QuoteRate24h),
+			Quote:             float64(item.Quote),
 			Quote24h:          item.Quote24h,
 			PrettyQuote:       item.PrettyQuote,
 			PrettyQuote24h:    item.PrettyQuote24h,
@@ -251,47 +254,61 @@ func convertNFTData(nftData []client.NFTData) []NFTData {
 }
 
 func (r *ConvectorFromClient) ConvectorToTransactionInfoResponse(res *client.ResGetTransaction) *TransactionInfoResponse {
-	if len(res.Items) == 0 {
+	// Check if the response is nil.
+	if res == nil {
 		return nil
 	}
 
-	tx := res.Items[0] // Get the first transaction item
-	return &TransactionInfoResponse{
-		BlockSignedAt:    tx.BlockSignedAt,
-		BlockHeight:      int64(tx.BlockHeight),
-		BlockHash:        tx.BlockHash,
-		TxHash:           tx.TxHash,
-		TxOffset:         int64(tx.TxOffset),
-		Successful:       tx.Successful,
-		FromAddress:      tx.FromAddress,
-		MinerAddress:     tx.MinerAddress,
-		FromAddressLabel: tx.FromAddressLabel,
-		ToAddress:        tx.ToAddress,
-		ToAddressLabel:   tx.ToAddressLabel,
-		Value:            tx.Value,
-		ValueQuote:       float64(tx.ValueQuote),
-		PrettyValueQuote: tx.PrettyValueQuote,
-		GasMetadata: GasMetadataInfo{
-			ContractDecimals:     int64(tx.GasMetadata.ContractDecimals),
-			ContractName:         tx.GasMetadata.ContractName,
-			ContractTickerSymbol: tx.GasMetadata.ContractTickerSymbol,
-			ContractAddress:      tx.GasMetadata.ContractAddress,
-			SupportsERC:          tx.GasMetadata.SupportsERC,
-			LogoURL:              tx.GasMetadata.LogoURL,
-		},
-		GasOffered:        int64(tx.GasOffered),
-		GasSpent:          int64(tx.GasSpent),
-		GasPrice:          int64(tx.GasPrice),
-		FeesPaid:          tx.FeesPaid,
-		GasQuote:          float64(tx.GasQuote),
-		PrettyGasQuote:    tx.PrettyGasQuote,
-		GasQuoteRate:      float64(tx.GasQuoteRate),
-		Explorers:         convertExplorersInfo(tx.Explorers),
-		LogEvents:         convertLogEventsInfo(tx.LogEvents),
-		InternalTransfers: convertInternalTransfersInfo(tx.InternalTransfers),
-		StateChanges:      convertStateChangesInfo(tx.StateChanges),
-		InputData:         convertInputDataInfo(tx.InputData),
+	// Create a response with data wrapper.
+	response := &TransactionInfoResponse{
+		ChainID:   int64(res.ChainID),
+		ChainName: res.ChainName,
 	}
+
+	// Check if there are items in the response.
+	if len(res.Items) == 0 {
+		// Set basic fields for empty response.
+		response.BlockSignedAt = res.UpdatedAt
+		return response
+	}
+
+	tx := res.Items[0] // Get the first transaction item.
+	response.BlockSignedAt = tx.BlockSignedAt
+	response.BlockHeight = int64(tx.BlockHeight)
+	response.BlockHash = tx.BlockHash
+	response.TxHash = tx.TxHash
+	response.TxOffset = int64(tx.TxOffset)
+	response.Successful = tx.Successful
+	response.FromAddress = tx.FromAddress
+	response.MinerAddress = tx.MinerAddress
+	response.FromAddressLabel = tx.FromAddressLabel
+	response.ToAddress = tx.ToAddress
+	response.ToAddressLabel = tx.ToAddressLabel
+	response.Value = tx.Value
+	response.ValueQuote = float64(tx.ValueQuote)
+	response.PrettyValueQuote = tx.PrettyValueQuote
+	response.GasMetadata = GasMetadataInfo{
+		ContractDecimals:     int64(tx.GasMetadata.ContractDecimals),
+		ContractName:         tx.GasMetadata.ContractName,
+		ContractTickerSymbol: tx.GasMetadata.ContractTickerSymbol,
+		ContractAddress:      tx.GasMetadata.ContractAddress,
+		SupportsERC:          tx.GasMetadata.SupportsERC,
+		LogoURL:              tx.GasMetadata.LogoURL,
+	}
+	response.GasOffered = int64(tx.GasOffered)
+	response.GasSpent = int64(tx.GasSpent)
+	response.GasPrice = int64(tx.GasPrice)
+	response.FeesPaid = tx.FeesPaid
+	response.GasQuote = float64(tx.GasQuote)
+	response.PrettyGasQuote = tx.PrettyGasQuote
+	response.GasQuoteRate = float64(tx.GasQuoteRate)
+	response.Explorers = convertExplorersInfo(tx.Explorers)
+	response.LogEvents = convertLogEventsInfo(tx.LogEvents)
+	response.InternalTransfers = convertInternalTransfersInfo(tx.InternalTransfers)
+	response.StateChanges = convertStateChangesInfo(tx.StateChanges)
+	response.InputData = convertInputDataInfo(tx.InputData)
+
+	return response
 }
 
 func convertInternalTransfersInfo(transfers []client.InternalTransferTransaction) []InternalTransferInfo {

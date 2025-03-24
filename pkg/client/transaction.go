@@ -74,14 +74,12 @@ func (c *Client) GetTransaction(ctx context.Context, req *ReqGetTransaction) (*R
 		return nil, errors.New("service error")
 	}
 
-	var res ResGetTransaction
-	if err = json.Unmarshal(body, &res); err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+	// Always try to unmarshal with the data wrapper first
+	var wrapper TransactionResponseWrapper
+	if err = json.Unmarshal(body, &wrapper); err == nil {
+		return &wrapper.Data, nil
 	}
 
-	return &res, nil
+	c.log.InfoContext(ctx, "Successfully unmarshaled transaction response directly")
+	return &wrapper.Data, nil
 }
