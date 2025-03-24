@@ -194,6 +194,10 @@ type (
 		ChainName     string `json:"chain_name"`
 	}
 
+	ResponseWrapper struct {
+		Data ResGetTokenBalancesForAddress `json:"data"`
+	}
+
 	ResGetTokenBalancesForAddress struct {
 		Address       string             `json:"address"`
 		ChainID       int                `json:"chain_id"`
@@ -254,10 +258,10 @@ type (
 		IsSpam               bool             `json:"is_spam"`
 		Balance              string           `json:"balance"`
 		Balance24h           string           `json:"balance_24h"`
-		QuoteRate            int              `json:"quote_rate"`
-		QuoteRate24h         int              `json:"quote_rate_24h"`
-		Quote                int              `json:"quote"`
-		Quote24h             int              `json:"quote_24h"`
+		QuoteRate            float64          `json:"quote_rate"`
+		QuoteRate24h         float64          `json:"quote_rate_24h"`
+		Quote                float64          `json:"quote"`
+		Quote24h             float64          `json:"quote_24h"`
 		PrettyQuote          string           `json:"pretty_quote"`
 		PrettyQuote24h       string           `json:"pretty_quote_24h"`
 		ProtocolMetadata     ProtocolMetadata `json:"protocol_metadata"`
@@ -483,37 +487,43 @@ type (
 		ChainName     string `json:"chain_name"`
 	}
 
-	PricePoint struct {
-		Balance     string `json:"balance"`
-		Quote       int    `json:"quote"`
-		PrettyQuote string `json:"pretty_quote"`
+	HistoricalPortfolioValuePoint struct {
+		Balance     string  `json:"balance"`
+		Quote       float64 `json:"quote"`
+		PrettyQuote string  `json:"pretty_quote"`
 	}
 
-	Holding struct {
-		QuoteRate int        `json:"quote_rate"`
-		Timestamp string     `json:"timestamp"`
-		Close     PricePoint `json:"close"`
-		High      PricePoint `json:"high"`
-		Low       PricePoint `json:"low"`
-		Open      PricePoint `json:"open"`
+	HistoricalPortfolioValueHolding struct {
+		Timestamp string                        `json:"timestamp"`
+		QuoteRate float64                       `json:"quote_rate"`
+		Open      HistoricalPortfolioValuePoint `json:"open"`
+		High      HistoricalPortfolioValuePoint `json:"high"`
+		Low       HistoricalPortfolioValuePoint `json:"low"`
+		Close     HistoricalPortfolioValuePoint `json:"close"`
 	}
 
-	HistoricalPortfolioItem struct {
-		ContractAddress      string    `json:"contract_address"`
-		ContractDecimals     int       `json:"contract_decimals"`
-		ContractName         string    `json:"contract_name"`
-		ContractTickerSymbol string    `json:"contract_ticker_symbol"`
-		LogoURL              string    `json:"logo_url"`
-		Holdings             []Holding `json:"holdings"`
+	HistoricalPortfolioValueContractItem struct {
+		ContractDecimals     int                               `json:"contract_decimals"`
+		ContractName         string                            `json:"contract_name"`
+		ContractTickerSymbol string                            `json:"contract_ticker_symbol"`
+		ContractAddress      string                            `json:"contract_address"`
+		SupportsErc          []string                          `json:"supports_erc"`
+		LogoURL              string                            `json:"logo_url"`
+		Holdings             []HistoricalPortfolioValueHolding `json:"holdings"`
 	}
 
 	ResGetHistoricalPortfolioValueOverTime struct {
-		Address       string                    `json:"address"`
-		UpdatedAt     string                    `json:"updated_at"`
-		QuoteCurrency string                    `json:"quote_currency"`
-		ChainID       int                       `json:"chain_id"`
-		ChainName     string                    `json:"chain_name"`
-		Items         []HistoricalPortfolioItem `json:"items"`
+		Address       string                                 `json:"address"`
+		UpdatedAt     string                                 `json:"updated_at"`
+		NextUpdateAt  string                                 `json:"next_update_at"`
+		QuoteCurrency string                                 `json:"quote_currency"`
+		ChainId       int                                    `json:"chain_id"`
+		ChainName     string                                 `json:"chain_name"`
+		Items         []HistoricalPortfolioValueContractItem `json:"items"`
+	}
+
+	TransactionResponsePortfolioValueOverTime struct {
+		Data ResGetHistoricalPortfolioValueOverTime `json:"data"`
 	}
 )
 
@@ -554,15 +564,22 @@ type (
 
 type (
 	ReqGetTransaction struct {
-		ChainName string `json:"chainName"`
-		TxHash    string `json:"txHash"`
+		ChainName string `json:"chain_name"`
+		TxHash    string `json:"tx_hash"`
+	}
+
+	TransactionResponseWrapper struct {
+		Data ResGetTransaction `json:"data"`
 	}
 
 	ResGetTransaction struct {
-		UpdatedAt string                       `json:"updated_at"`
-		ChainID   int                          `json:"chain_id"`
-		ChainName string                       `json:"chain_name"`
-		Items     []TransactionItemTransaction `json:"items"`
+		UpdatedAt    string                       `json:"updated_at"`
+		ChainID      int                          `json:"chain_id"`
+		ChainName    string                       `json:"chain_name"`
+		Items        []TransactionItemTransaction `json:"items"`
+		Error        bool                         `json:"error"`
+		ErrorMessage string                       `json:"error_message"`
+		ErrorCode    string                       `json:"error_code"`
 	}
 
 	GasMetadataTransaction struct {
@@ -651,16 +668,16 @@ type (
 		ToAddress         string                        `json:"to_address"`
 		ToAddressLabel    string                        `json:"to_address_label"`
 		Value             string                        `json:"value"`
-		ValueQuote        int                           `json:"value_quote"`
+		ValueQuote        float64                       `json:"value_quote"`
 		PrettyValueQuote  string                        `json:"pretty_value_quote"`
 		GasMetadata       GasMetadataTransaction        `json:"gas_metadata"`
 		GasOffered        int                           `json:"gas_offered"`
 		GasSpent          int                           `json:"gas_spent"`
 		GasPrice          int                           `json:"gas_price"`
 		FeesPaid          string                        `json:"fees_paid"`
-		GasQuote          int                           `json:"gas_quote"`
+		GasQuote          float64                       `json:"gas_quote"`
 		PrettyGasQuote    string                        `json:"pretty_gas_quote"`
-		GasQuoteRate      int                           `json:"gas_quote_rate"`
+		GasQuoteRate      float64                       `json:"gas_quote_rate"`
 		Explorers         []ExplorerTransaction         `json:"explorers"`
 		LogEvents         []LogEventTransaction         `json:"log_events"`
 		InternalTransfers []InternalTransferTransaction `json:"internal_transfers"`
@@ -820,6 +837,10 @@ type (
 		ChainName     string `json:"chain_name"`
 	}
 
+	TransactionResponseRecentTransactionForAddress struct {
+		Data ResGetRecentTransactionForAddress `json:"data"`
+	}
+
 	ResGetRecentTransactionForAddress struct {
 		Address       string                  `json:"address"`
 		UpdatedAt     string                  `json:"updated_at"`
@@ -849,16 +870,16 @@ type (
 		ToAddress        string            `json:"to_address"`
 		ToAddressLabel   string            `json:"to_address_label"`
 		Value            string            `json:"value"`
-		ValueQuote       int               `json:"value_quote"`
+		ValueQuote       float64           `json:"value_quote"`
 		PrettyValueQuote string            `json:"pretty_value_quote"`
 		GasMetadata      GasMetadataRecent `json:"gas_metadata"`
 		GasOffered       int               `json:"gas_offered"`
 		GasSpent         int               `json:"gas_spent"`
 		GasPrice         int               `json:"gas_price"`
 		FeesPaid         string            `json:"fees_paid"`
-		GasQuote         int               `json:"gas_quote"`
+		GasQuote         float64           `json:"gas_quote"`
 		PrettyGasQuote   string            `json:"pretty_gas_quote"`
-		GasQuoteRate     int               `json:"gas_quote_rate"`
+		GasQuoteRate     float64           `json:"gas_quote_rate"`
 		Explorers        []ExplorerRecent  `json:"explorers"`
 		LogEvents        []LogEventRecent  `json:"log_events"`
 	}
@@ -878,22 +899,22 @@ type (
 	}
 
 	LogEventRecent struct {
-		BlockSignedAt          string      `json:"block_signed_at"`
-		BlockHeight            int         `json:"block_height"`
-		TxOffset               int         `json:"tx_offset"`
-		LogOffset              int         `json:"log_offset"`
-		TxHash                 string      `json:"tx_hash"`
-		RawLogTopics           []string    `json:"raw_log_topics"`
-		SenderContractDecimals int         `json:"sender_contract_decimals"`
-		SenderName             string      `json:"sender_name"`
-		SenderTickerSymbol     string      `json:"sender_contract_ticker_symbol"`
-		SenderAddress          string      `json:"sender_address"`
-		SenderAddressLabel     string      `json:"sender_address_label"`
-		SenderLogoURL          string      `json:"sender_logo_url"`
-		SupportsERC            []string    `json:"supports_erc"`
-		SenderFactoryAddress   string      `json:"sender_factory_address"`
-		RawLogData             string      `json:"raw_log_data"`
-		Decoded                DecodedData `json:"decoded"`
+		BlockSignedAt          string       `json:"block_signed_at"`
+		BlockHeight            int          `json:"block_height"`
+		TxOffset               int          `json:"tx_offset"`
+		LogOffset              int          `json:"log_offset"`
+		TxHash                 string       `json:"tx_hash"`
+		RawLogTopics           []string     `json:"raw_log_topics"`
+		SenderContractDecimals int          `json:"sender_contract_decimals"`
+		SenderName             string       `json:"sender_name"`
+		SenderTickerSymbol     string       `json:"sender_contract_ticker_symbol"`
+		SenderAddress          string       `json:"sender_address"`
+		SenderAddressLabel     string       `json:"sender_address_label"`
+		SenderLogoURL          string       `json:"sender_logo_url"`
+		SupportsERC            []string     `json:"supports_erc"`
+		SenderFactoryAddress   string       `json:"sender_factory_address"`
+		RawLogData             string       `json:"raw_log_data"`
+		Decoded                *DecodedData `json:"decoded"`
 	}
 
 	DecodedData struct {

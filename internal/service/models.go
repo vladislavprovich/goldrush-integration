@@ -57,16 +57,16 @@ type (
 		ToAddress        string            `json:"to_address"`
 		ToAddressLabel   string            `json:"to_address_label"`
 		Value            string            `json:"value"`
-		ValueQuote       int               `json:"value_quote"`
+		ValueQuote       float64           `json:"value_quote"`
 		PrettyValueQuote string            `json:"pretty_value_quote"`
 		GasMetadata      GasMetadataRecent `json:"gas_metadata"`
 		GasOffered       int               `json:"gas_offered"`
 		GasSpent         int               `json:"gas_spent"`
 		GasPrice         int               `json:"gas_price"`
 		FeesPaid         string            `json:"fees_paid"`
-		GasQuote         int               `json:"gas_quote"`
+		GasQuote         float64           `json:"gas_quote"`
 		PrettyGasQuote   string            `json:"pretty_gas_quote"`
-		GasQuoteRate     int               `json:"gas_quote_rate"`
+		GasQuoteRate     float64           `json:"gas_quote_rate"`
 		Explorers        []ExplorerRecent  `json:"explorers"`
 		LogEvents        []LogEventRecent  `json:"log_events"`
 	}
@@ -111,11 +111,11 @@ type (
 	}
 
 	Param struct {
-		Name    string `json:"name"`
-		Type    string `json:"type"`
-		Indexed bool   `json:"indexed"`
-		Decoded bool   `json:"decoded"`
-		Value   string `json:"value"`
+		Name    string      `json:"name"`
+		Type    string      `json:"type"`
+		Indexed bool        `json:"indexed"`
+		Decoded bool        `json:"decoded"`
+		Value   interface{} `json:"value"`
 	}
 )
 
@@ -148,6 +148,8 @@ type (
 		GasQuote          float64                `json:"gas_quote"`
 		PrettyGasQuote    string                 `json:"pretty_gas_quote"`
 		GasQuoteRate      float64                `json:"gas_quote_rate"`
+		ChainID           int64                  `json:"chain_id"`
+		ChainName         string                 `json:"chain_name"`
 		Explorers         []ExplorerInfo         `json:"explorers"`
 		LogEvents         []LogEventInfo         `json:"log_events"`
 		InternalTransfers []InternalTransferInfo `json:"internal_transfers"`
@@ -230,6 +232,46 @@ type (
 )
 
 type (
+	HistoricalPortfolioValueRequest struct {
+		WalletAddress string `json:"wallet_address"`
+		ChainName     string `json:"chain_name"`
+	}
+
+	HistoricalPortfolioValueResponse struct {
+		Address       string                    `json:"address"`
+		UpdatedAt     string                    `json:"updated_at"`
+		QuoteCurrency string                    `json:"quote_currency"`
+		ChainID       int                       `json:"chain_id"`
+		ChainName     string                    `json:"chain_name"`
+		Items         []HistoricalPortfolioItem `json:"items"`
+	}
+
+	HistoricalPortfolioItem struct {
+		ContractAddress      string              `json:"contract_address"`
+		ContractDecimals     int                 `json:"contract_decimals"`
+		ContractName         string              `json:"contract_name"`
+		ContractTickerSymbol string              `json:"contract_ticker_symbol"`
+		LogoURL              string              `json:"logo_url"`
+		Holdings             []HistoricalHolding `json:"holdings"`
+	}
+
+	HistoricalHolding struct {
+		QuoteRate float64           `json:"quote_rate"`
+		Timestamp string            `json:"timestamp"`
+		Close     HistoricalBalance `json:"close"`
+		High      HistoricalBalance `json:"high"`
+		Low       HistoricalBalance `json:"low"`
+		Open      HistoricalBalance `json:"open"`
+	}
+
+	HistoricalBalance struct {
+		Balance     string  `json:"balance"`
+		Quote       float64 `json:"quote"`
+		PrettyQuote string  `json:"pretty_quote"`
+	}
+)
+
+type (
 	TokenBalancesRequest struct {
 		WalletAddress string `json:"wallet_address"`
 		ChainName     string `json:"chain_name"`
@@ -295,10 +337,10 @@ type (
 		IsSpam               bool             `json:"is_spam"`
 		Balance              string           `json:"balance"`
 		Balance24h           string           `json:"balance_24h"`
-		QuoteRate            int              `json:"quote_rate"`
-		QuoteRate24h         int              `json:"quote_rate_24h"`
-		Quote                int              `json:"quote"`
-		Quote24h             int              `json:"quote_24h"`
+		QuoteRate            float64          `json:"quote_rate"`
+		QuoteRate24h         float64          `json:"quote_rate_24h"`
+		Quote                float64          `json:"quote"`
+		Quote24h             float64          `json:"quote_24h"`
 		PrettyQuote          string           `json:"pretty_quote"`
 		PrettyQuote24h       string           `json:"pretty_quote_24h"`
 		ProtocolMetadata     ProtocolMetadata `json:"protocol_metadata"`
@@ -307,41 +349,18 @@ type (
 )
 
 type (
-	HistoricalPortfolioValueRequest struct {
-		WalletAddress string `json:"wallet_address"`
-		ChainName     string `json:"chain_name"`
-	}
-
 	PricePoint struct {
-		Balance     string `json:"balance"`
-		Quote       int    `json:"quote"`
-		PrettyQuote string `json:"pretty_quote"`
+		Balance     string  `json:"balance"`
+		Quote       float64 `json:"quote"`
+		PrettyQuote string  `json:"pretty_quote"`
 	}
 
 	Holding struct {
-		QuoteRate int        `json:"quote_rate"`
+		QuoteRate float64    `json:"quote_rate"`
 		Timestamp string     `json:"timestamp"`
 		Close     PricePoint `json:"close"`
 		High      PricePoint `json:"high"`
 		Low       PricePoint `json:"low"`
 		Open      PricePoint `json:"open"`
-	}
-
-	HistoricalPortfolioItem struct {
-		ContractAddress      string    `json:"contract_address"`
-		ContractDecimals     int       `json:"contract_decimals"`
-		ContractName         string    `json:"contract_name"`
-		ContractTickerSymbol string    `json:"contract_ticker_symbol"`
-		LogoURL              string    `json:"logo_url"`
-		Holdings             []Holding `json:"holdings"`
-	}
-
-	HistoricalPortfolioValueResponse struct {
-		Address       string                    `json:"address"`
-		UpdatedAt     string                    `json:"updated_at"`
-		QuoteCurrency string                    `json:"quote_currency"`
-		ChainID       int                       `json:"chain_id"`
-		ChainName     string                    `json:"chain_name"`
-		Items         []HistoricalPortfolioItem `json:"items"`
 	}
 )

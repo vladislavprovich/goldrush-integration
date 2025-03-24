@@ -34,7 +34,7 @@ func (c *Client) GetRecentTransactionForAddress(ctx context.Context, req *ReqGet
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains", "err", err)
+		c.log.ErrorContext(ctx, "error creating http request for get recent transactions for address", "err", err)
 		return nil, errors.New("service error")
 	}
 
@@ -75,14 +75,15 @@ func (c *Client) GetRecentTransactionForAddress(ctx context.Context, req *ReqGet
 		return nil, errors.New("service error")
 	}
 
-	var res ResGetRecentTransactionForAddress
-	if err = json.Unmarshal(body, &res); err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+	var wrapper TransactionResponseRecentTransactionForAddress
+	if err = json.Unmarshal(body, &wrapper); err == nil {
+		c.log.InfoContext(ctx, "Successfully unmarshaled transaction response with wrapper")
+		// Ensure Items is initialized even if it's null in the response
+		if wrapper.Data.Items == nil {
+			wrapper.Data.Items = []TransactionItemRecent{}
+		}
+		return &wrapper.Data, nil
 	}
 
-	return &res, nil
+	return &wrapper.Data, nil
 }
