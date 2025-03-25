@@ -4,12 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
-	"go.opentelemetry.io/otel/codes"
 )
 
 func (c *Client) GetHistoricalPortfolioValueOverTime(
@@ -20,67 +14,32 @@ func (c *Client) GetHistoricalPortfolioValueOverTime(
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
 
-	urlForGetStatus := &url.URL{
-		Scheme: "https",
-		Host:   c.cfg.Balances.BaseURL,
-		Path: fmt.Sprintf("%s/%s/%s/%s/%s/",
-			c.cfg.Balances.Version,
-			req.ChainName,
-			c.cfg.Balances.Address,
-			req.WalletAddress,
-			c.cfg.Balances.PortfolioV2,
-		),
-	}
+	urlObj := c.buildAPIURL(
+		c.cfg.Balances.BaseURL,
+		c.cfg.Balances.Version,
+		req.ChainName,
+		c.cfg.Balances.Address,
+		req.WalletAddress,
+		c.cfg.Balances.PortfolioV2,
+	)
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, urlForGetStatus.String(), nil)
+	resp, err := c.doRequest(ctx, urlObj.String(), span)
 	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
-			"err", err)
-		return nil, errors.New("service error")
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.SetBasicAuth(c.cfg.APIKey, "")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
 		return nil, errors.New("service error")
 	}
 	defer func() {
-		if err = resp.Body.Close(); err != nil {
-			span.SetStatus(codes.Error, err.Error())
-			span.RecordError(err)
-
-			panic(err)
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		span.SetStatus(codes.Error, fmt.Sprintf("%s status code %d", resp.Status, resp.StatusCode))
-		span.RecordError(fmt.Errorf("%s status code %d", resp.Status, resp.StatusCode))
-
-		c.log.ErrorContext(ctx, "service error", "status", resp.StatusCode)
-		return nil, errors.New("service error")
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	respBody, err := c.processResponse(ctx, resp, span)
 	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
 		return nil, errors.New("service error")
 	}
 
 	var wrapper TransactionResponsePortfolioValueOverTime
-	if err = json.Unmarshal(body, &wrapper); err == nil {
+	if err = json.Unmarshal(respBody, &wrapper); err == nil {
 		return &wrapper.Data, nil
 	}
 

@@ -15,6 +15,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"go.opentelemetry.io/otel/sdk/trace"
+
 	"github.com/vladislavprovich/goldrush-integration/cmd/config"
 	"github.com/vladislavprovich/goldrush-integration/internal/handler"
 	"github.com/vladislavprovich/goldrush-integration/internal/repository"
@@ -43,81 +46,26 @@ func main() {
 	defer cancel()
 	log := setupLogger(ctx, cfg)
 
-	err := telemetry.EnsureLogDir(cfg.Logging.LogDir)
+	err := initTelemetry(ctx, log, cfg)
 	if err != nil {
-		log.Error("failed to ensure log dir",
-			slog.String("dir", cfg.Logging.LogDir),
-			slog.String("error ", err.Error()))
+		log.ErrorContext(ctx, "failed to initialize telemetry", slog.Any("error", err))
 	}
 
-	_, err = telemetry.InitMetrics(ctx, log, &cfg.Metrics)
-	if err != nil {
-		defaultLog.Fatalf("failed to init metrics: %v", err)
-	}
+	tracerProvider := initTraceProvider(ctx, cfg, log)
+	defer initTraceProviderShutdown(ctx, tracerProvider)
 
-	tracerProvider, err := telemetry.InitTracing(ctx, cfg.Metrics.Endpoint, log)
-	if err != nil {
-		defaultLog.Fatalf("failed to init tracing: %v", err)
-	}
-	defer func() {
-		if err = tracerProvider.Shutdown(context.Background()); err != nil {
-			log.Error("failed to shutdown tracer", slog.String("error", err.Error()))
-		}
-	}()
+	redisClient := initRedisClient(ctx, cfg)
+	defer initRedisClientShutdown(ctx, redisClient)
 
-	redisClient := redisintegration.NewRedisClient(cfg.Redis)
-	if redisClient == nil {
-		defaultLog.Fatal("failed to init redis client")
-	}
-	defer func() {
-		err = redisClient.Close()
-		if err != nil {
-			defaultLog.Fatalf("failed to close redis client: %v", err)
-		}
-	}()
+	tokenRepo := initTokenRepository(ctx, redisClient, cfg)
 
-	tokenRepo := repository.NewRedisTokenRepository(redisClient, cfg.Repository)
-
-	conn, err := grpc.NewClient(cfg.Service.EndPoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithConnectParams(grpc.ConnectParams{
-			MinConnectTimeout: cfg.Service.MinConnectTimeout,
-		}),
-	)
-	if err != nil {
-		defaultLog.Fatalf("failed to connect to SSO service: %v", err)
-	}
-
-	defer func() {
-		err = conn.Close()
-		if err != nil {
-			defaultLog.Fatalf("failed to close SSO connection: %v", err)
-		}
-	}()
+	conn := initConnToSSO(ctx, cfg)
+	defer initConnToSSOShutdown(ctx, conn)
 
 	// Initialize SSO client with configuration.
-	initProtoSSO := ssov1.NewAuthClient(conn)
-	if err != nil {
-		defaultLog.Fatalf("failed to init SSO client: %v", err)
-	}
+	initProtoSSO, httpClient := initProtobufSSO(ctx, conn, cfg)
 
-	rootCAs, _ := x509.SystemCertPool()
-	if rootCAs == nil {
-		rootCAs = x509.NewCertPool()
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:    rootCAs,
-			MinVersion: tls.VersionTLS12,
-		},
-	}
-
-	httpClient := &http.Client{
-		Timeout:   cfg.Handler.TimeOut,
-		Transport: tr,
-	}
-	integrationClient := client.NewClient(httpClient, tracerProvider, log, &cfg.Client)
+	integrationClient := initGoldRushClient(ctx, httpClient, tracerProvider, log, cfg)
 
 	params := service.Params{
 		Log:        log,
@@ -127,11 +75,11 @@ func main() {
 		Client:     *integrationClient,
 	}
 
-	grService := service.NewService(params)
+	grService := initGoldRushService(ctx, params)
 
-	handlerGoldRush := handler.NewGoldRushHandler(grService, log, &cfg.Handler)
+	handlerGoldRush := initGoldRushHandler(ctx, grService, log, cfg)
 
-	r := handler.InitRouter(handlerGoldRush, log, &cfg.Handler)
+	r := initRouter(ctx, handlerGoldRush, log, cfg)
 
 	// Start HTTP server
 	server := &http.Server{
@@ -150,16 +98,7 @@ func main() {
 	log.Info("Server started", slog.String("address", cfg.Handler.Address))
 
 	// Graceful shutdown
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	<-stop
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second)
-	defer shutdownCancel()
-
-	if err = server.Shutdown(shutdownCtx); err != nil {
-		log.Error("failed to shutdown server gracefully", slog.String("error", err.Error()))
-	}
+	initGracefulShutdown(ctx, server, log)
 
 	log.Info("Server stopped gracefully")
 }
@@ -191,4 +130,156 @@ func setupLogger(ctx context.Context, cfg *config.Config) *slog.Logger {
 	}
 
 	return log
+}
+
+func initTraceProvider(ctx context.Context, cfg *config.Config, log *slog.Logger) *trace.TracerProvider {
+	tracerProvider, err := telemetry.InitTracing(ctx, cfg.Metrics.Endpoint, log)
+	if err != nil {
+		defaultLog.Fatalf("failed to init tracing: %v", err)
+	}
+
+	return tracerProvider
+}
+
+func initTraceProviderShutdown(_ context.Context, tracerProvider *trace.TracerProvider) {
+	if err := tracerProvider.Shutdown(context.Background()); err != nil {
+		defaultLog.Fatalf("failed to shutdown tracer: %v", err)
+	}
+}
+
+func initRedisClient(_ context.Context, cfg *config.Config) *redisintegration.ClientRedis {
+	redisClient := redisintegration.NewRedisClient(cfg.Redis)
+	if redisClient == nil {
+		defaultLog.Fatal("failed to init redis client")
+	}
+
+	return redisClient
+}
+
+func initRedisClientShutdown(_ context.Context, redisClient *redisintegration.ClientRedis) {
+	err := redisClient.Close()
+	if err != nil {
+		defaultLog.Fatalf("failed to close redis client: %v", err)
+	}
+}
+
+func initTokenRepository(
+	_ context.Context,
+	redisClient *redisintegration.ClientRedis,
+	cfg *config.Config,
+) *repository.RedisTokenRepository {
+	tokenRepo := repository.NewRedisTokenRepository(redisClient, cfg.Repository)
+	return tokenRepo
+}
+
+func initConnToSSO(_ context.Context, cfg *config.Config) *grpc.ClientConn {
+	conn, err := grpc.NewClient(cfg.Service.EndPoint,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithConnectParams(grpc.ConnectParams{
+			MinConnectTimeout: cfg.Service.MinConnectTimeout,
+		}),
+	)
+	if err != nil {
+		defaultLog.Fatalf("failed to connect to SSO service: %v", err)
+	}
+
+	return conn
+}
+
+func initConnToSSOShutdown(_ context.Context, conn *grpc.ClientConn) {
+	err := conn.Close()
+	if err != nil {
+		defaultLog.Fatalf("failed to close SSO connection: %v", err)
+	}
+}
+
+func initProtobufSSO(_ context.Context, conn *grpc.ClientConn, cfg *config.Config) (ssov1.AuthClient, *http.Client) {
+	initProtoSSO := ssov1.NewAuthClient(conn)
+
+	rootCAs, _ := x509.SystemCertPool()
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs:    rootCAs,
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+
+	httpClient := &http.Client{
+		Timeout:   cfg.Handler.TimeOut,
+		Transport: tr,
+	}
+
+	return initProtoSSO, httpClient
+}
+
+func initGoldRushClient(
+	_ context.Context,
+	httpClient *http.Client,
+	tracerProvider *trace.TracerProvider,
+	log *slog.Logger,
+	cfg *config.Config,
+) *client.Client {
+	integrationClient := client.NewClient(httpClient, tracerProvider, log, &cfg.Client)
+	return integrationClient
+}
+
+func initGoldRushService(_ context.Context, params service.Params) *service.Service {
+	grService := service.NewService(params)
+	return grService
+}
+
+func initGoldRushHandler(
+	_ context.Context,
+	grService *service.Service,
+	log *slog.Logger,
+	cfg *config.Config,
+) *handler.GoldRushHandler {
+	handlerGoldRush := handler.NewGoldRushHandler(grService, log, &cfg.Handler)
+	return handlerGoldRush
+}
+
+func initRouter(
+	_ context.Context,
+	handlerGoldRush *handler.GoldRushHandler,
+	log *slog.Logger,
+	cfg *config.Config,
+) *chi.Mux {
+	router := handler.InitRouter(handlerGoldRush, log, &cfg.Handler)
+	return router
+}
+
+func initTelemetry(ctx context.Context, log *slog.Logger, cfg *config.Config) error {
+	err := telemetry.EnsureLogDir(cfg.Logging.LogDir)
+	if err != nil {
+		log.ErrorContext(ctx, "failed to ensure log dir",
+			slog.String("dir", cfg.Logging.LogDir),
+			slog.String("error ", err.Error()))
+		return err
+	}
+
+	// Init metrics.
+	_, err = telemetry.InitMetrics(ctx, log, &cfg.Metrics)
+	if err != nil {
+		defaultLog.Fatalf("failed to init metrics: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func initGracefulShutdown(ctx context.Context, server *http.Server, log *slog.Logger) {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	<-stop
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.ErrorContext(ctx, "failed to shutdown server gracefully", slog.String("error", err.Error()))
+	}
 }

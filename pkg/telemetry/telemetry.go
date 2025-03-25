@@ -78,7 +78,7 @@ func InitTracing(ctx context.Context, otelEndpoint string, log *slog.Logger) (*t
 
 	resource, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String("userinfo-service"),
+			semconv.ServiceNameKey.String("goldrush-integration-service"),
 		),
 	)
 	if err != nil {

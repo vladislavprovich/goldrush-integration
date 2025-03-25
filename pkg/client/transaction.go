@@ -3,13 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
-	"go.opentelemetry.io/otel/codes"
 )
 
 func (c *Client) GetTransaction(ctx context.Context, req *ReqGetTransaction) (*ResGetTransaction, error) {
@@ -17,67 +11,35 @@ func (c *Client) GetTransaction(ctx context.Context, req *ReqGetTransaction) (*R
 	ctx, span := c.tracer.Start(ctx, op)
 	defer span.End()
 
-	urlForGetStatus := &url.URL{
-		Scheme: "https",
-		Host:   c.cfg.Transactions.BaseURL,
-		Path: fmt.Sprintf("%s/%s/%s/%s/",
-			c.cfg.Transactions.Version,
-			req.ChainName,
-			c.cfg.Transactions.TransactionV2,
-			req.TxHash,
-		),
-	}
+	path := fmt.Sprintf("%s/%s/%s/%s/",
+		c.cfg.Transactions.Version,
+		req.ChainName,
+		c.cfg.Transactions.TransactionV2,
+		req.TxHash,
+	)
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, urlForGetStatus.String(), nil)
+	urlObj := buildURL(c.cfg.Transactions.BaseURL, path)
+
+	// For this specific endpoint, we need to handle the response manually.
+	// Because it has a special wrapper structure.
+	resp, err := c.doRequest(ctx, urlObj.String(), span)
 	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "error creating http request for get activity across all chains",
-			"err", err)
-		return nil, errors.New("service error")
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.SetBasicAuth(c.cfg.APIKey, "")
-
-	resp, err := c.httpClient.Do(httpReq)
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+		return nil, err
 	}
 	defer func() {
-		if err = resp.Body.Close(); err != nil {
-			span.SetStatus(codes.Error, err.Error())
-			span.RecordError(err)
-
-			panic(err)
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		span.SetStatus(codes.Error, fmt.Sprintf("%s status code %d", resp.Status, resp.StatusCode))
-		span.RecordError(fmt.Errorf("%s status code %d", resp.Status, resp.StatusCode))
-
-		c.log.ErrorContext(ctx, "service error", "status", resp.StatusCode)
-		return nil, errors.New("service error")
-	}
-
-	body, err := io.ReadAll(resp.Body)
+	respBody, err := c.processResponse(ctx, resp, span)
 	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-		span.RecordError(err)
-
-		c.log.ErrorContext(ctx, "service error", "err", err)
-		return nil, errors.New("service error")
+		return nil, err
 	}
 
 	// Always try to unmarshal with the data wrapper first
 	var wrapper TransactionResponseWrapper
-	if err = json.Unmarshal(body, &wrapper); err == nil {
+	if err = json.Unmarshal(respBody, &wrapper); err == nil {
 		return &wrapper.Data, nil
 	}
 
