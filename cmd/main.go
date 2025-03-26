@@ -47,7 +47,7 @@ func main() {
 
 	err := initTelemetry(ctx, log, cfg)
 	if err != nil {
-		defaultLog.Fatalf("failed to initialize telemetry", slog.Any("error", err))
+		defaultLog.Fatal("failed to initialize telemetry", slog.Any("error", err))
 	}
 
 	tracerProvider := initTraceProvider(ctx, cfg, log)
