@@ -41,6 +41,7 @@ func main() {
 	if cfg == nil {
 		defaultLog.Fatalf("Config is nil! %v", cfg)
 	}
+	// Init context.
 	ctx := context.Background()
 
 	log := setupLogger(ctx, cfg)
