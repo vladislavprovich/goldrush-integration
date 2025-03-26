@@ -3,8 +3,9 @@ package handler
 import (
 	"context"
 	"errors"
-	"github.com/vladislavprovich/goldrush-integration/internal/service"
 	"net/http"
+
+	"github.com/vladislavprovich/goldrush-integration/internal/service"
 )
 
 func (h *GoldRushHandler) GetTransactionInfo(w http.ResponseWriter, r *http.Request) {

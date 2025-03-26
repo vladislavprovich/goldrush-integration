@@ -2,10 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/vladislavprovich/goldrush-integration/internal/service"
 	"log"
 	"log/slog"
 	"net/http"
+
+	"github.com/vladislavprovich/goldrush-integration/internal/service"
 )
 
 func (h *GoldRushHandler) UserRegister(w http.ResponseWriter, r *http.Request) {

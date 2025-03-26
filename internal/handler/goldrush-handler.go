@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/vladislavprovich/goldrush-integration/internal/service"
 	"log/slog"
+
+	"github.com/vladislavprovich/goldrush-integration/internal/service"
 )
 
 type GoldRushHandler struct {
