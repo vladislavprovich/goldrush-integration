@@ -39,16 +39,15 @@ const (
 func main() {
 	cfg := config.MustLoad()
 	if cfg == nil {
-		panic("Config is nil!")
+		defaultLog.Fatalf("Config is nil! %v", cfg)
 	}
+	ctx := context.Background()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	log := setupLogger(ctx, cfg)
 
 	err := initTelemetry(ctx, log, cfg)
 	if err != nil {
-		log.ErrorContext(ctx, "failed to initialize telemetry", slog.Any("error", err))
+		defaultLog.Fatalf("failed to initialize telemetry", slog.Any("error", err))
 	}
 
 	tracerProvider := initTraceProvider(ctx, cfg, log)
