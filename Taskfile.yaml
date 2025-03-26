@@ -8,3 +8,24 @@ tasks:
       - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - golangci-lint run --timeout=5m
     silent: false
+  vulncheck:
+      desc: "Check for security vulnerabilities"
+      cmds:
+        - echo "Checking for security vulnerabilities..."
+        - go install golang.org/x/vuln/cmd/govulncheck@latest
+        #      - $env:Path += ";" + (go env GOPATH) + "\bin"  Temporarily adds to PATH
+        - govulncheck ./...
+      silent: false
+
+  fmt:
+      desc: "Format Go code"
+      cmds:
+        - echo "Formatting code..."
+        - gofmt -w .
+      silent: false
+  imports:
+    desc: "Format imports"
+    cmds:
+      - echo "Formatting import..."
+      - goimports -w .
+    silent: false

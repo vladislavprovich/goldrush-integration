@@ -2,11 +2,15 @@ package service
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/codes"
 	"log/slog"
+
+	"go.opentelemetry.io/otel/codes"
 )
 
-func (s *Service) RecentAddressTransaction(ctx context.Context, req *RecentAddressTransactionRequest) (*RecentAddressTransactionResponse, error) {
+func (s *Service) RecentAddressTransaction(
+	ctx context.Context,
+	req *RecentAddressTransactionRequest,
+) (*RecentAddressTransactionResponse, error) {
 	ctx, span := s.tracer.Start(ctx, "service.RecentAddressTransaction")
 	defer span.End()
 	s.log.InfoContext(ctx, "RecentAddressTransaction call")

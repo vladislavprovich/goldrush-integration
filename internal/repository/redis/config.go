@@ -6,7 +6,9 @@ type Config struct {
 	// Redis server address.
 	Addr string `json:"addr" env:"REDIS_ADDR" envDefault:"localhost:6379"`
 	// Password (if required).
-	Password string `json:"password" env:"REDIS_PASSWORD" envDefault:""`
+	Password string `json:"password" env:"REDIS_PASSWORD" envDefault:"admin"`
+	// Username lol.
+	Username string `json:"username" env:"REDIS_USERNAME" envDefault:"admin"`
 	// Database number.
 	DB int `json:"db" env:"REDIS_DB" envDefault:"0"`
 	// Maximum number of connections in the pool.
