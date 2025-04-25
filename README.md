@@ -133,11 +133,3 @@ go test ./...
 ## Observability
 
 The service is instrumented with OpenTelemetry for distributed tracing and metrics collection. Logs are collected using Promtail and can be visualized in Grafana.
-
-## License
-
-[License information]
-
-## Contributing
-
-[Contribution guidelines]
